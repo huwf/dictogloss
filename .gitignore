@@ -3,3 +3,4 @@ database.db
 .idea/
 *.pyc
 venv/
+API_KEY.json
