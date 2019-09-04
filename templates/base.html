@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dictogloss application</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='styles/bootstrap.min.css')}}">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Dictogloss</h1>
+        {% block form_or_player %}
+        <div id="form" class="col">
+            <form action="/" method="post">
+                <div>
+                    <label for="url">MP3 location</label>
+                    <input type="text" name="url" id="url" value="" placeholder="Place a URL to an MP3 file here..." />
+                </div>
+                <div>
+                    <label for="pretty_name">Pretty name</label>
+                    <input type="text" name="pretty_name" id="pretty_name" value="" placeholder="Add a pretty name here" />
+                    <input type="submit" value="Submit" />
+                </div>
+
+            </form>
+        </div>
+        {% endblock %}
+        <br class="clear" />
+        {% block segments%}
+
+        {% endblock %}
+        <div id="main" class="col-sm-10" style=" float:right">
+            {% block main %} {% endblock %}
+        </div>
+    </div>
+    <br style="clear: both;" />
+
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

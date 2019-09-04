@@ -1,0 +1,6 @@
+requests
+Flask
+google-cloud
+google-cloud-speech
+sqlalchemy
+pydub

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block form_or_player %}
+<p>
+    Play the file as many times as you like, and try to catch each word.
+</p>
+<audio controls>
+    <source src="{{ url_for('static', filename=filename)}}" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+{% endblock %}
+{% block segments %}
+
+<div id="segments" class="col-sm-2" style="float: left; border:solid 2px red; max-height:720px; overflow-scrolling: auto">
+    <ul style="padding-left: 0;">
+        {% for f in files %}
+        <li style="list-style-type: none">
+            <a href="{{ url_for('play_file', file_id=file_id, position=f.position) }}">Part {{f.position}}</a></li>
+        {% endfor %}}
+    </ul>
+</div>
+{% endblock %}
+
+{% block main %}
+
+{% if segment.transcript is none %}
+
+<div>
+    <p>There is no solution available for this segment. <button data-file_id="{{file_id}}" data-position="{{position}}" id="retrieve">Retrieve one</button></p>
+</div>
+{% endif %}
+
+<div id="exercise_container">
+    <h2>Answer</h2>
+    <p>As you listen to the file, write what you hear in the box below:</p>
+    <div id="exercise" contenteditable="true" class="col-sm-12 float-left" style="border: solid black 2px; min-height: 200px;">
+</div>
+
+</div>
+<form action="{{url_for('solution', file_id=file_id, position=position)}}" method="post">
+    <input type="hidden" name="student_answer" id="student_answer" value="" />
+    <input type="submit" class="input-group" value="Submit answer" />
+</form>
+
+<script src="{{ url_for('static', filename='scripts/scripts.js')}}"></script>
+{% endblock %}
