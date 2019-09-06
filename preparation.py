@@ -10,20 +10,20 @@ import requests
 from urllib.parse import urlparse
 import logging
 
-from constants import OUTPUT_DIR
+from constants import OUTPUT_DIR, DEFAULT_SEGMENT_LENGTH
 from db import BaseAudio, Segment, db
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 
-def download_file(url, file_name=None, output_dir=OUTPUT_DIR, pretty_name=None):
+def download_file(url, file_name=None, output_dir=OUTPUT_DIR, pretty_name=None, segment_length=30):
 
     filepath = file_name if file_name else urlparse(url).path.split('/')[-1]
 
     logger.info('Downloading file from %s to be saved at ', url)
     r = requests.get(url)
-    obj = BaseAudio(filepath, filepath if not pretty_name else pretty_name, source_url=url)
+    obj = BaseAudio(filepath, filepath if not pretty_name else pretty_name, source_url=url, segment_length=segment_length)
     db.add(obj)
     db.commit()
     output_dir_path = '{}/{}'.format(output_dir, obj.id)
@@ -37,7 +37,7 @@ def download_file(url, file_name=None, output_dir=OUTPUT_DIR, pretty_name=None):
     raise OSError('The file, or a file with the same name, has already been downloaded')
 
 
-def split_file(base_id, path, seconds=30):
+def split_file(base_id, path, seconds=DEFAULT_SEGMENT_LENGTH):
 
     logger.info('Splitting file at %s', path)
     split_path = os.path.split(path)

@@ -16,22 +16,27 @@
         {% for f in obj.segments|sort(attribute='position') %}
         <li style="list-style-type: none">
             <a href="{{ url_for('play_file', file_id=file_id, position=f.position) }}">Part {{f.position}}</a></li>
-        {% endfor %}}
+        {% endfor %}
     </ul>
 </div>
 {% endblock %}
-
 
 
 {% block main %}
 {% if obj.pretty_name %}
 <h2>{{obj.pretty_name}}</h2>
 {% endif %}
+
+{% block retrieve %}
 {% if segment.transcript is none %}
 <div>
     <p>There is no solution available for this segment. <button data-file_id="{{file_id}}" data-position="{{position}}" id="retrieve">Retrieve one</button></p>
+    <div class="spinner-border" id="spinner" style="display: none;" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
 </div>
 {% endif %}
+{% endblock %}
 
 <div id="exercise_container">
     <h3>Answer</h3>
@@ -40,10 +45,10 @@
 </div>
 
 </div>
-<form action="{{url_for('solution', file_id=file_id, position=position)}}" method="post">
+<form id="form_solution" action="{{url_for('solution', file_id=file_id, position=position)}}" method="post">
     <input type="hidden" name="student_answer" id="student_answer" value="" />
     <input type="submit" class="input-group" value="Submit answer" />
 </form>
 
-<script src="{{ url_for('static', filename='scripts/scripts.js')}}"></script>
+
 {% endblock %}

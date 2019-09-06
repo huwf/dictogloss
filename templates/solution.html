@@ -1,11 +1,20 @@
 {% extends 'main.html' %}
 
 
+
 {% block main %}
 
 {% if obj.pretty_name %}
 <h2>{{obj.pretty_name}}</h2>
 {% endif %}
+
+{% block retrieve %}
+{% if segment.transcript is none %}
+<div>
+    <p>There is no solution available for this segment. <button data-file_id="{{file_id}}" data-position="{{position}}" id="retrieve">Retrieve one</button></p>
+</div>
+{% endif %}
+{% endblock %}
 
 <div id="exercise" class="col-sm-6 float-left">
     <h3>Your answer</h3>

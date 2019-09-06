@@ -3,7 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session, relationship
 from sqlalchemy import Column, String, Integer, Float, Text
 
-engine = create_engine('sqlite:///database.db', connect_args={'check_same_thread': False})
+from constants import DB_CONNECTION_STRING
+
+engine = create_engine(DB_CONNECTION_STRING, connect_args={'check_same_thread': False})
 Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
@@ -15,12 +17,14 @@ class BaseAudio(Base):
     filename = Column(String)
     pretty_name = Column(String)
     source_url = Column(String)
+    segment_length = Column(Integer)
     segments = relationship('Segment')
 
-    def __init__(self, filename, pretty_name, source_url):
+    def __init__(self, filename, pretty_name, source_url, segment_length):
         self.filename = filename
         self.pretty_name = pretty_name
         self.source_url = source_url
+        self.segment_length = segment_length
 
 
 class Segment(Base):
@@ -54,3 +58,13 @@ def get_base_info(id):
 
 def get_segment(base, position):
     return db.query(Segment).filter(Segment.base_id == base).filter(Segment.position == position).first()
+
+
+# TODO: Implement filter/sort option
+def get_downloads(filter=None, sort=None):
+    query = db.query(BaseAudio).order_by(BaseAudio.pretty_name)
+    if filter:
+        pass
+    if sort:
+        pass
+    return query.all()
