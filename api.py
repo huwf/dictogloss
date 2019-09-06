@@ -4,8 +4,6 @@ import google.api_core.exceptions
 from google.cloud import speech
 
 
-
-
 def get_transcript(filepath, encoding=speech.enums.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED,
                    sample_rate=44100, language_code='sv-SE', automatic_punctuation=False):
 

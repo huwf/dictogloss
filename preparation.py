@@ -53,6 +53,6 @@ def split_file(base_id, path, seconds=30):
 
     for idx, f in enumerate(sorted(os.listdir(split_path[0]))):
         if not f == split_path[1]:
-            s = Segment(base_id=base_id, position=idx, transcript=None, confidence=None)
+            s = Segment(base_id=base_id, position=idx + 1, transcript=None, confidence=None)
             db.add(s)
             db.commit()

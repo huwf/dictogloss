@@ -3,13 +3,17 @@
 
 {% block main %}
 
-<div id="exercise" contenteditable="true" class="col-sm-6 float-left" style="border: solid black 2px;">
-    <h2>Your answer</h2>
-    {{student_solution}}
+{% if obj.pretty_name %}
+<h2>{{obj.pretty_name}}</h2>
+{% endif %}
+
+<div id="exercise" class="col-sm-6 float-left">
+    <h3>Your answer</h3>
+    {{student_solution|safe}}
 
 </div>
-<div id="solution" contenteditable="true" class="col-sm-6 float-right" style="border: solid blue 2px;">
-    <h2>Google answer (Confidence {{confidence}})</h2>
+<div id="solution" class="col-sm-6 float-right">
+    <h3>Transcript (Confidence {{confidence}})</h3>
     {{google_solution|safe}}
 </div>
 

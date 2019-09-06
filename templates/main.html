@@ -11,9 +11,9 @@
 {% endblock %}
 {% block segments %}
 
-<div id="segments" class="col-sm-2" style="float: left; border:solid 2px red; max-height:720px; overflow-scrolling: auto">
+<div id="segments" class="col-sm-2 overflow-auto" style="float: left; max-height:480px; overflow-scrolling: auto">
     <ul style="padding-left: 0;">
-        {% for f in files %}
+        {% for f in obj.segments|sort(attribute='position') %}
         <li style="list-style-type: none">
             <a href="{{ url_for('play_file', file_id=file_id, position=f.position) }}">Part {{f.position}}</a></li>
         {% endfor %}}
@@ -21,17 +21,20 @@
 </div>
 {% endblock %}
 
+
+
 {% block main %}
-
+{% if obj.pretty_name %}
+<h2>{{obj.pretty_name}}</h2>
+{% endif %}
 {% if segment.transcript is none %}
-
 <div>
     <p>There is no solution available for this segment. <button data-file_id="{{file_id}}" data-position="{{position}}" id="retrieve">Retrieve one</button></p>
 </div>
 {% endif %}
 
 <div id="exercise_container">
-    <h2>Answer</h2>
+    <h3>Answer</h3>
     <p>As you listen to the file, write what you hear in the box below:</p>
     <div id="exercise" contenteditable="true" class="col-sm-12 float-left" style="border: solid black 2px; min-height: 200px;">
 </div>
