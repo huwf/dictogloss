@@ -131,3 +131,8 @@ def solution(file_id, position):
 @app.route('/downloads')
 def downloads():
     return render_template('downloads.html', downloads=get_downloads())
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')

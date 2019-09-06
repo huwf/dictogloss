@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block form_or_player %}
+
+{% endblock %}
+
+{% block main %}
+<p>
+This is an application for practicing a foreign language using a variant of the ["dictogloss technique"](https://en.wikipedia.org/wiki/Dictogloss).
+There are different reasons/approaches with this technique, but I found it incredibly useful for understanding people speaking
+in real Swedish. I believe that it is often also used as a means of teaching grammatical constructs as well.
+The flow of the application is as follows:
+</p>
+<ol>
+    <li>A link to an MP3 is provided, which is downloaded and split into segments of 30s each.</li>
+    <li>The segment is played over and over, and the text is written into the text box on the page.</li>
+    <li>The answer is submitted, and is then compared with the transcript of the segment, obtained using the  Google Speech API.</li>
+</ol>
+
+<p>Good luck!</p>
+
+{% endblock %}

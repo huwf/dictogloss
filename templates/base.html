@@ -5,21 +5,6 @@
     <title>Dictogloss application</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for('static', filename='styles/bootstrap.min.css')}}">
-    <style type="text/css">
-    .loader {
-      border: 4px solid #f3f3f3; /* Light grey */
-      border-top: 4px solid #3498db; /* Blue */
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 2s linear infinite;
-      display:none;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    </style>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
 			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
@@ -27,8 +12,20 @@
     <body>
         <div class="container">
             <h1>Dictogloss</h1>
-            <a href="{{url_for('downloads')}}">Downloads</a>
+            <nav>
+                <a href="{{url_for('index')}}">Home</a> |
+                <a href="{{url_for('about')}}">About Dictogloss</a> |
+                <a href="{{url_for('downloads')}}">Downloads</a>
+            </nav>
+
             {% block form_or_player %}
+            <p>
+                Download an MP3 to practice listening. For example:
+            </p>
+            <ul>
+                <li><a href="https://sverigesradio.se/radioswedenpalattsvenska" target="_blank">Nyheter på lätt svenska</a> </li>
+                <li><a href="https://sverigesradio.se/sommarvinterip1" target="_blank">Sommar & Vinter i P1</a> </li>
+            </ul>
             <div id="form" class="col">
                 <form action="/" method="post" id="new_form">
                     <div class="form-group row">
@@ -52,7 +49,6 @@
                     </div>
                 </form>
             </div>
-
 
             {% endblock %}
             <br class="clear" />

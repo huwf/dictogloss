@@ -1,13 +1,13 @@
 # Dictogloss App
 
-This is an application for practicing a foreign language using the "dictogloss" technique.
-
+This is an application for practicing a foreign language using a variant of the ["dictogloss technique"](https://en.wikipedia.org/wiki/Dictogloss).
+There are different reasons/approaches with this technique, but I found it incredibly useful for understanding people speaking
+in real Swedish. I believe that it is often also used as a means of teaching grammatical constructs as well.
 The flow of the application is as follows:
 
 1. A link to an MP3 is provided, which is downloaded and split into segments of 30s each.
 2. The segment is played over and over, and the text is written into the text box on the page.  
-3. The answer is submitted, and is then compared with the transcript of the segment, obtained using the 
-Google Speech API.
+3. The answer is submitted, and is then compared with the transcript of the segment, obtained using the  Google Speech API.
 
 ## Warning
 
@@ -42,11 +42,15 @@ This app is stored in the Docker Hub at https://hub.docker.com/r/huwf/dictogloss
 You will need to mount the API key to the docker container. The code is stored at `/usr/src`, so the easiest is to mount
 the file from the host to `/usr/src/API_KEY.json`.
 
+Depending on your setup, you will probably want to mount the mp3 directory to host, and the sqlite file (if appropriate).
+By default this is `database.db`.
+
 It runs using the Flask development server on port 5000, so can be run as:
 
-    docker run -m API_KEY.json:/usr/src/API_KEY.json -p 127.0.0.1:5000:5000 huwf/dictogloss
+    docker run -v API_KEY.json:/usr/src/API_KEY.json -v $(pwd)/static/mp3:/usr/static/mp3 -p 127.0.0.1:5000:5000 huwf/dictogloss
 
 Alternative settings for the Flask server can also be set as arguments.
+
       
 ## Setup on your computer
 
@@ -64,6 +68,13 @@ To run the application:
     export FLASK_APP = app    
     python -u -m flask run
 
-Flask environment variables can be configured in the usual way according to the [Flask documentation](https://flask.palletsprojects.com/en/1.1.x)
 
-Alternatively, you should only 
+
+## Customisation
+
+Limited customisation can be done through environment variables:
+
+* Flask environment variables can be configured in the usual way according to the [Flask documentation](https://flask.palletsprojects.com/en/1.1.x)
+* You can change the database connection string to use a different server by modifying the `DB_CONNECTION_STRING` environment variable.
+
+
