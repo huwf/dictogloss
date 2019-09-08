@@ -4,7 +4,7 @@ from flask import Flask, render_template, url_for, request, redirect
 import json
 import os
 import html
-
+import logging
 from werkzeug.wrappers import response
 
 from api import get_transcript
@@ -13,6 +13,8 @@ from db import get_base_info, get_segment, db, get_downloads
 from google_diff_patch_match.diff_match_patch import diff_match_patch
 from preparation import download_file, split_file, OUTPUT_DIR
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -37,15 +39,16 @@ class Differ(diff_match_patch):
                 html_student.append("<ins style=\"background:#e6ffe6;\">{}</ins>".format('&nbsp;' * len(text)))
                 html_google.append("<ins style=\"background:#e6ffe6;\">{}</ins>".format(text))
             elif op == self.DIFF_DELETE:
-                html_student.append("<del style=\"background:#ffe6e6;\">{}</del>".format(text))
+                # html_student.append("<del style=\"background:#ffe6e6;\">{}</del>".format(text))
+                html_google.append("<del style=\"background:#ffe6e6;\">{}</del>".format(text))
             elif op == self.DIFF_EQUAL:
-                html_student.append("<span>{}</span>".format(text))
+                # html_student.append("<span>{}</span>".format(text))
                 html_google.append("<span>{}</span>".format(text))
 
-        student = '<div id="student_solution">{}</div>'.format("".join(html_student))
+        # student = '<div id="student_solution" style="word-break:break-all;">{}</div>'.format("".join(html_student))
         google = '<div id="google_solution">{}</div>'.format("".join(html_google))
 
-        return student, google
+        return google
 
 
 # Utility functions
@@ -87,7 +90,8 @@ def index():
     if request.method == 'POST':
         url = request.form.get('url')
         pretty_name = request.form.get('pretty_name')
-        seconds = request.form.get('segment_length', DEFAULT_SEGMENT_LENGTH)
+        seconds = request.form.get('segment_length')
+        logger.debug('seconds: %s\n\n\n' % seconds)
         if not url:
             return 'You did not specify a URL!', 400
         file_id, download_path = download_file(url, pretty_name=pretty_name)
@@ -123,7 +127,7 @@ def solution(file_id, position):
 
         differ = Differ()
 
-        student_solution, google_solution = differ.diff_prettyHtml(differ.diff_main(student_solution, segment.transcript))
+        google_solution = differ.diff_prettyHtml(differ.diff_main(student_solution, segment.transcript))
         return render_template('solution.html', obj=obj, file_id=file_id, segment=segment,
                                filename=full_filename, student_solution=student_solution, google_solution=google_solution,
                                confidence='{:.2f}'.format(segment.confidence))

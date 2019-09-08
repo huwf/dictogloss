@@ -7,7 +7,12 @@ The flow of the application is as follows:
 
 1. A link to an MP3 is provided, which is downloaded and split into segments of 30s each.
 2. The segment is played over and over, and the text is written into the text box on the page.  
+
+![Attempting the exercise for Nick Bostrom on Sommar i P1](./static/images/exercise.png)
+
 3. The answer is submitted, and is then compared with the transcript of the segment, obtained using the  Google Speech API.
+
+![Difference between right and wrong](./static/images/diff.png)
 
 ## Warning
 
@@ -47,7 +52,7 @@ By default this is `database.db`.
 
 It runs using the Flask development server on port 5000, so can be run as:
 
-    docker run -v API_KEY.json:/usr/src/API_KEY.json -v $(pwd)/static/mp3:/usr/static/mp3 -p 127.0.0.1:5000:5000 huwf/dictogloss
+    docker run -v $(pwd)/database.db:/usr/src/database.db -v $(pwd)/API_KEY.json:/usr/src/API_KEY.json -v $(pwd)/static/mp3:/usr/src/static/mp3 -p 127.0.0.1:5000:5000 huwf/dictogloss
 
 Alternative settings for the Flask server can also be set as arguments.
 
@@ -66,10 +71,8 @@ variable to the location you have saved the file, e.g.,
 To run the application:
     
     export FLASK_APP = app    
-    python -u -m flask run
-
-
-
+    python -u -m flask 
+    
 ## Customisation
 
 Limited customisation can be done through environment variables:

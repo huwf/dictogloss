@@ -39,6 +39,9 @@ def download_file(url, file_name=None, output_dir=OUTPUT_DIR, pretty_name=None, 
 
 def split_file(base_id, path, seconds=DEFAULT_SEGMENT_LENGTH):
 
+    if not seconds:
+        seconds = DEFAULT_SEGMENT_LENGTH
+
     logger.info('Splitting file at %s', path)
     split_path = os.path.split(path)
     output_path = "/".join([split_path[0], '{}_{}%04d.mp3'.format(seconds, split_path[1].replace('mp3', ''))])

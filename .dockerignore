@@ -1,5 +1,7 @@
 .git/
-database.db
 .idea/
-*.pyc
 venv/
+*.pyc
+database.db
+API_KEY.json
+static/mp3/*
