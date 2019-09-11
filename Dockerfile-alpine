@@ -1,0 +1,25 @@
+FROM python:3.6-alpine as dependencies
+
+COPY ./requirements.txt .
+
+RUN apk add --update python3-dev build-base && pip install -r requirements.txt
+
+FROM python:3.6-alpine
+
+ENV GOOGLE_APPLICATION_CREDENTIALS="API_KEY.json" \
+    FLASK_APP="app" \
+    FLASK_RUN_HOST="0.0.0.0"
+
+COPY --from=dependencies /root/.cache /root/.cache
+COPY --chown=1000:1000 ./ ./
+
+RUN addgroup -S worker && adduser -S worker -G worker && chown -R worker:worker /usr/src \
+&& pip install -r requirements.txt \
+&& apk add ffmpeg \
+&& rm -rf /root/.cache \
+&& rm -rf /var/cache/apk/* /tmp/*
+
+WORKDIR /usr/src
+USER worker
+
+CMD python -u -m flask run

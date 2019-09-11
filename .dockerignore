@@ -1,7 +1,12 @@
-.git/
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
 .idea/
 venv/
-*.pyc
 database.db
 API_KEY.json
 static/mp3/*
