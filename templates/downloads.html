@@ -8,7 +8,7 @@
 <h2>Files already downloaded</h2>
 <ul>
     {% for d in downloads%}
-    <li><a href="{{url_for('play_file', file_id=d.file_id, position=1)}}">{{d.pretty_name}}</a></li>
+    <li><a href="{{url_for('play_file', file_id=d.id, position=1)}}">{{d.pretty_name}}</a></li>
     {% endfor %}
 </ul>
 {% endblock %}
