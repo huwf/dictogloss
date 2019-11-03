@@ -104,6 +104,7 @@ def index():
 
 
 @app.route('/file/<file_id>/<position>')
+@login_required
 def play_file(file_id, position=1):
     obj = get_base_info(file_id)
     full_filename = get_full_filename(obj, position)
@@ -114,6 +115,7 @@ def play_file(file_id, position=1):
 
 
 @app.route('/file/<file_id>/<position>/solution', methods=['GET', 'POST'])
+@login_required
 def solution(file_id, position):
     obj = get_base_info(file_id)
     full_filename = get_full_filename(obj, position)
@@ -147,6 +149,7 @@ def word(word):
 
 
 @app.route('/downloads')
+@login_required
 def downloads():
     return render_template('downloads.html', downloads=get_downloads())
 
