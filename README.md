@@ -8,7 +8,7 @@ The flow of the application is as follows:
 1. A link to an MP3 is provided, which is downloaded and split into segments of 30s each.
 2. The segment is played over and over, and the text is written into the text box on the page.  
 
-![Attempting the exercise for Nick Bostrom on Sommar i P1](./static/images/exercise.png)
+![Attempting the exercise for Nick Bostrom on Sommar i P1](static/images/exercise.png)
 
 3. The answer is submitted, and is then compared with the transcript of the segment, obtained using the  Google Speech API.
 

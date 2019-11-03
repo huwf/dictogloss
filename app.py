@@ -1,23 +1,28 @@
 import google
 
 from flask import Flask, render_template, url_for, request, redirect
-import json
-import os
 import html
 import logging
-from werkzeug.wrappers import response
+import os
 
-from api import get_transcript
-from constants import DEFAULT_SEGMENT_LENGTH
-from db import get_base_info, get_segment, db, get_downloads
+from flask_login import current_user
+from flask_security.utils import hash_password
+
+from database import db, init_db
+from models import get_base_info, get_segment, get_downloads, get_full_filename, User, Role
 from google_diff_patch_match.diff_match_patch import diff_match_patch
-from preparation import download_file, split_file, OUTPUT_DIR
+from preparation import download_file, split_file
+
+from flask_security import login_required, SQLAlchemySessionUserDatastore, SQLAlchemyUserDatastore, Security
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+app.config.from_object('config')
 
+user_datastore = SQLAlchemySessionUserDatastore(db, User, Role)
+security = Security(app, user_datastore)
 
 # Just want to slightly change the output of the Google differ.
 class Differ(diff_match_patch):
@@ -51,50 +56,47 @@ class Differ(diff_match_patch):
         return student, google
 
 
-# Utility functions
-def _get_segment(obj, file_id, position, update=False):
-    full_filename = _get_full_filename(obj, position)
-    segment = get_segment(file_id, position)
-
-    if segment.transcript is None and update:
-        transcript, confidence = get_transcript('./static/{}'.format(full_filename))
-        segment.transcript = transcript
-        segment.confidence = confidence
-        db.commit()
-
-    return segment
-
-
-def _get_full_filename(obj, position):
-    dirname = '{}/{}'.format('mp3', obj.id)
-    # TODO: Hardcoded length
-    # position -1 because ffmpeg starts splitting on 0000
-    filename = obj.filename.replace('.mp3', '.{:04}'.format(int(position) - 1))
-    return '{}/{}.mp3'.format(dirname, '{}_{}'.format(obj.segment_length, filename))
+@app.before_first_request
+def create_user():
+    init_db()
+    u = db.query(User).first()
+    if not u:
+        user_datastore.create_user(username='testymctestface',
+                                   email='huwfryer@gmail.com',
+                                   password=hash_password('testytest'),
+                                   seconds_available=600)
+    db.commit()
 
 
 @app.route('/_retrieve/<file_id>/<position>', methods=['POST'])
 def retrieve_transcript(file_id, position):
     try:
         obj = get_base_info(file_id)
-        _get_segment(obj, file_id, position, update=True)
+        if current_user.seconds_available < obj.segment_length:
+            from requests.exceptions import HTTPError
+            raise HTTPError('You do not have enough credit available to download this segment')
+        segment = get_segment(obj, file_id, position, update=True)
+        current_user.seconds_available -= obj.segment_length
+        db.commit()
         return render_template('get_transcript.html', position=position)
     except (google.api_core.exceptions.GoogleAPICallError, google.api_core.exceptions.RetryError,
-            google.auth.exceptions.DefaultCredentialsError) as e:
+            google.auth.exceptions.DefaultCredentialsError, HTTPError) as e:
         print('HANDLING THE ERROR')
         return render_template('get_transcript.html', error=e)
 
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     if request.method == 'POST':
+
         url = request.form.get('url')
         pretty_name = request.form.get('pretty_name')
         seconds = request.form.get('segment_length')
         logger.debug('seconds: %s\n\n\n' % seconds)
         if not url:
             return 'You did not specify a URL!', 400
-        file_id, download_path = download_file(url, pretty_name=pretty_name)
+        file_id, download_path = download_file(url, pretty_name=pretty_name, segment_length=seconds)
         split_file(file_id, download_path, seconds=seconds)
         return redirect(url_for('play_file', file_id=file_id, position=1), code=301)
 
@@ -104,8 +106,8 @@ def index():
 @app.route('/file/<file_id>/<position>')
 def play_file(file_id, position=1):
     obj = get_base_info(file_id)
-    full_filename = _get_full_filename(obj, position)
-    segment = _get_segment(obj, file_id, position, update=False)
+    full_filename = get_full_filename(obj, position)
+    segment = get_segment(obj, file_id, position, update=False)
 
     return render_template('main.html', obj=obj, filename=full_filename,
                            file_id=file_id, position=position, segment=segment)
@@ -114,8 +116,8 @@ def play_file(file_id, position=1):
 @app.route('/file/<file_id>/<position>/solution', methods=['GET', 'POST'])
 def solution(file_id, position):
     obj = get_base_info(file_id)
-    full_filename = _get_full_filename(obj, position)
-    segment = _get_segment(obj, file_id, position)
+    full_filename = get_full_filename(obj, position)
+    segment = get_segment(obj, file_id, position)
     confidence = '0' if not segment.confidence else '{:.2f}'.format(segment.confidence)
 
     if request.method == 'GET':
@@ -137,6 +139,12 @@ def solution(file_id, position):
         return render_template('solution.html', obj=obj, file_id=file_id, segment=segment,
                                filename=full_filename, student_solution=student_solution, google_solution=google_solution,
                                confidence='{:.2f}'.format(segment.confidence))
+
+
+@app.route('/dictionary/<word>')
+def word(word):
+    pass
+
 
 @app.route('/downloads')
 def downloads():

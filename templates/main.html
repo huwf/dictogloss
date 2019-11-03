@@ -4,11 +4,16 @@
 <p>
     Play the file as many times as you like, and try to catch each word.
 </p>
-<audio controls>
+<audio controls style="float:left">
     <source src="{{ url_for('static', filename=filename)}}" type="audio/mpeg">
     Your browser does not support the audio element.
 </audio>
-
+<div class="form-group col-sm-4" style="float:right;">
+<label for="formControlRange">Speed of play</label> <span id="playerSpeed"></span>
+<input type="range" min="0" max="2" step="0.1" value="1.0"  class="form-control-range" id="formControlRange">
+    <p id="output"></p>
+</div>
+<br style="clear:both;" />
 {% endblock %}
 {% block segments %}
 

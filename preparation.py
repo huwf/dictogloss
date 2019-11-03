@@ -11,7 +11,9 @@ from urllib.parse import urlparse
 import logging
 
 from constants import OUTPUT_DIR, DEFAULT_SEGMENT_LENGTH
-from db import BaseAudio, Segment, db
+from models import BaseAudio, Segment
+from database import db
+import re
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -54,8 +56,12 @@ def split_file(base_id, path, seconds=DEFAULT_SEGMENT_LENGTH):
     if proc.returncode != 0:
         logger.warning(str(error))
 
-    for idx, f in enumerate(sorted(os.listdir(split_path[0]))):
-        if not f == split_path[1]:
-            s = Segment(base_id=base_id, position=idx + 1, transcript=None, confidence=None)
-            db.add(s)
-            db.commit()
+    print('listdir: %s' % os.listdir(split_path[0]))
+    segments = [s for s in sorted(os.listdir(split_path[0])) if re.match(r'[0-9]{1,4}_', s)]
+    print('segments: %r' % segments)
+    for idx, f in enumerate(segments):
+        logger.debug('%d %s' % (idx, f))
+        logger.debug('SAVING %d %s' % (idx, f))
+        s = Segment(base_id=base_id, position=idx + 1, transcript=None, confidence=None)
+        db.add(s)
+        db.commit()
