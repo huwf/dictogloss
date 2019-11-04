@@ -35,7 +35,10 @@ $(document).ready(function () {
         $.post(`/_retrieve/${file_id}/${position}`, function (data) {
             // TODO: Don't know why this isn't working with jQuery, but this is simple enough for vanilla JS
             document.getElementById('retrieve').parentNode.parentNode.innerHTML = data;
+            // Keep the "seconds available" up to date...
+            document.getElementById('seconds_available').innerHTML = parseInt($('audio')[0].duration);
             $('.spinner-border').hide();
+
         });
 
     });

@@ -21,7 +21,13 @@
     <ul style="padding-left: 0;">
         {% for f in obj.segments|sort(attribute='position') %}
         <li style="list-style-type: none">
-            <a href="{{ url_for('play_file', file_id=file_id, position=f.position) }}">Part {{f.position}}</a></li>
+            <a href="{{ url_for('play_file', file_id=file_id, position=f.position) }}">
+                {% if f.position == position %}
+                <span class="font-weight-bold">Part {{f.position}}</span>
+                {% else %}
+                Part {{f.position}}
+                {% endif %}
+                </a></li>
         {% endfor %}
     </ul>
 </div>
@@ -30,7 +36,7 @@
 
 {% block main %}
 {% if obj.pretty_name %}
-<h2>{{obj.pretty_name}}</h2>
+<h2>{{obj.pretty_name}} part {{position}}</h2>
 {% endif %}
 
 {% block retrieve %}
@@ -45,16 +51,31 @@
 {% endblock %}
 
 <div id="exercise_container">
-    <h3>Answer</h3>
-    <p>As you listen to the file, write what you hear in the box below:</p>
-    <div id="exercise" contenteditable="true" class="col-sm-12 float-left" style="border: solid black 2px; min-height: 200px;">
-</div>
+    <h3>Exercise</h3>
+    <p>
+        As you listen to the file, write what you hear in the box below:
+        {% if segment.transcript %}
+        <span class="float-right"> <a href="{{ url_for('solution', file_id=file_id, position=position) }}">View answer</a></span>
+        {% endif %}
+    </p>
+
+    <div id="exercise" contenteditable="true" class="col-sm-10 float-right" style="border: solid black 2px; min-height: 200px;"></div>
+
+    <div class="col-sm-10 float-left p-0">
+        <form id="form_solution" action="{{url_for('solution', file_id=file_id, position=position)}}" method="post">
+            <input type="hidden" name="student_answer" id="student_answer" value="" />
+            <input type="submit" class="input-group" value="Submit answer" />
+        </form>
+
+        <div id="nextPrev">
+            {% if position > 1 %}
+            <span class="float-left"><a href="{{url_for('play_file', file_id=file_id, position=position-1)}}">Prev</a></span>
+            {% endif %}
+            {% if position < obj.segments|length %}
+            <span class="float-right"><a href="{{url_for('play_file', file_id=file_id, position=position+1)}}">Next</a></span>
+            {% endif %}
+        </div>
+    </div>
 
 </div>
-<form id="form_solution" action="{{url_for('solution', file_id=file_id, position=position)}}" method="post">
-    <input type="hidden" name="student_answer" id="student_answer" value="" />
-    <input type="submit" class="input-group" value="Submit answer" />
-</form>
-
-
 {% endblock %}

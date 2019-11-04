@@ -7,6 +7,6 @@
 {% else %}
 <div class="alert alert-success">
     <strong class="d-block">Success!</strong>
-    <p>The transcript for segment {{position}} was successfully retrieved</p>
+    <p>The transcript for segment {{position}} was successfully retrieved. <a href="{{ url_for('solution', file_id=file_id, position=position) }}">View answer</a> </p>
 </div>
 {% endif %}

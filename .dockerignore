@@ -4,9 +4,10 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-env
+.env
 .idea/
 venv/
 database.db
 API_KEY.json
 static/mp3/*
+./config.py

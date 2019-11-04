@@ -1,19 +1,21 @@
 import google
 
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, abort, Response
 import html
 import logging
 import os
 
 from flask_login import current_user
-from flask_security.utils import hash_password
+
 
 from database import db, init_db
 from models import get_base_info, get_segment, get_downloads, get_full_filename, User, Role
+from custom import ExtendedLoginForm
 from google_diff_patch_match.diff_match_patch import diff_match_patch
 from preparation import download_file, split_file
 
-from flask_security import login_required, SQLAlchemySessionUserDatastore, SQLAlchemyUserDatastore, Security
+from flask_security import login_required, SQLAlchemySessionUserDatastore, SQLAlchemyUserDatastore, Security, forms
+from flask_security.utils import hash_password
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -23,6 +25,7 @@ app.config.from_object('config')
 
 user_datastore = SQLAlchemySessionUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
+
 
 # Just want to slightly change the output of the Google differ.
 class Differ(diff_match_patch):
@@ -60,16 +63,28 @@ class Differ(diff_match_patch):
 def create_user():
     init_db()
     u = db.query(User).first()
+    logger.debug('User exists? %r' % u)
     if not u:
+        from flask_security.utils import hash_password
+
         user_datastore.create_user(username='testymctestface',
-                                   email='huwfryer@gmail.com',
-                                   password=hash_password('testytest'),
+                                   email=os.environ.get('DEFAULT_EMAIL', 'example@example.com'),
+                                   password=hash_password(os.environ.get('DEFAULT_PASSWORD')),
                                    seconds_available=600)
     db.commit()
+
+def _parse_args(file_id, position):
+    try:
+        file_id = int(file_id)
+        position = int(position)
+        return file_id, position
+    except ValueError:
+        abort(Response('<h1>Error 400: Invalid request</h1> <p>Please go back and try again</p>', 400))
 
 
 @app.route('/_retrieve/<file_id>/<position>', methods=['POST'])
 def retrieve_transcript(file_id, position):
+    file_id, position = _parse_args(file_id, position)
     try:
         obj = get_base_info(file_id)
         if current_user.seconds_available < obj.segment_length:
@@ -78,10 +93,10 @@ def retrieve_transcript(file_id, position):
         segment = get_segment(obj, file_id, position, update=True)
         current_user.seconds_available -= obj.segment_length
         db.commit()
-        return render_template('get_transcript.html', position=position)
+        return render_template('get_transcript.html', position=position, file_id=file_id)
     except (google.api_core.exceptions.GoogleAPICallError, google.api_core.exceptions.RetryError,
             google.auth.exceptions.DefaultCredentialsError, HTTPError) as e:
-        print('HANDLING THE ERROR')
+        logger.debug('HANDLING THE ERROR')
         return render_template('get_transcript.html', error=e)
 
 
@@ -106,6 +121,7 @@ def index():
 @app.route('/file/<file_id>/<position>')
 @login_required
 def play_file(file_id, position=1):
+    file_id, position = _parse_args(file_id, position)
     obj = get_base_info(file_id)
     full_filename = get_full_filename(obj, position)
     segment = get_segment(obj, file_id, position, update=False)
@@ -117,6 +133,7 @@ def play_file(file_id, position=1):
 @app.route('/file/<file_id>/<position>/solution', methods=['GET', 'POST'])
 @login_required
 def solution(file_id, position):
+    file_id, position = _parse_args(file_id, position)
     obj = get_base_info(file_id)
     full_filename = get_full_filename(obj, position)
     segment = get_segment(obj, file_id, position)

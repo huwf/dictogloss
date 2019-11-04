@@ -1,34 +1,23 @@
-{% block doc -%}
-<!DOCTYPE html>
-<html{% block html_attribs %}{% endblock html_attribs %}>
-  {%- block html %}
-  <head>
-    {%- block head %}
-    <title>{% block title %}{{ title|default }}{% endblock title %}</title>
+{% extends "security/base.html" %}
+{% from "security/_macros.html" import render_field_with_errors, render_field %}
 
-      {%- block metas %}
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      {%- endblock metas %}
+{% block styles %}
+<link rel="stylesheet" href="{{url_for('static', filename='styles/bootstrap.min.css')}}">
+{% endblock %}
 
-      {%- block styles %}
-    <link rel="stylesheet" href="{{url_for('static', filename='styles/bootstrap.min.css')}}">
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
-			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-      {%- endblock styles %}
-    {%- endblock head %}
 
-  </head>
-  <body{% block body_attribs %}{% endblock body_attribs %}>
-    {% block body -%}
-      {% block navbar %}
-      {%- endblock navbar %}
-      {% block content -%}
-      {%- endblock content %}
+{% block content %}
+<div class="container">
+{% include "security/_messages.html" %}
+<h1>{{ _('Login') }}</h1>
+<form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+  {{ login_user_form.hidden_tag() }}
+  {{ render_field_with_errors(login_user_form.email) }}
+  {{ render_field_with_errors(login_user_form.password) }}
+  {{ render_field_with_errors(login_user_form.remember) }}
+  {{ render_field(login_user_form.submit) }}
+</form>
+{% include "security/_menu.html" %}
+</div>
+{% endblock %}
 
-      {% block scripts %}
-      {%- endblock scripts %}
-    {%- endblock body %}
-  </body>
-  {%- endblock html %}
-</html>
-{% endblock doc -%}

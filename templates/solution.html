@@ -26,4 +26,13 @@
     {{google_solution|safe}}
 </div>
 
+<div id="nextPrev">
+    {% if position > 1 %}
+    <span class="float-left"><a href="{{solution('play_file', file_id=file_id, position=position-1)}}">Prev</a></span>
+    {% endif %}
+    {% if position < obj.segments|length %}
+    <span class="float-right"><a href="{{solution('play_file', file_id=file_id, position=position+1)}}">Next</a></span>
+    {% endif %}
+</div>
+
 {% endblock %}
