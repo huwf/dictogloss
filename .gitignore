@@ -1,7 +1,12 @@
-static/mp3
-database.db
-.idea/
+__pycache__
 *.pyc
-venv/
-API_KEY.json
+*.pyo
+*.pyd
+.Python
 .env
+.idea/
+venv/
+database.db
+API_KEY.json
+static/mp3/*
+./config.py
