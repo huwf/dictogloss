@@ -68,7 +68,7 @@ def create_user():
         from flask_security.utils import hash_password
 
         user_datastore.create_user(username='testymctestface',
-                                   email=os.environ.get('DEFAULT_EMAIL', 'example@example.com'),
+                                   email=os.environ.get('DEFAULT_EMAIL'),
                                    password=hash_password(os.environ.get('DEFAULT_PASSWORD')),
                                    seconds_available=600)
     db.commit()

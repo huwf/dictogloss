@@ -3,9 +3,9 @@ This module is for places where I have customised various other libraries
 Or where this app could conceivably be customised in the future.
 """
 from flask_security import LoginForm
-from flask_security.forms import get_form_field_label
+from flask_security.forms import get_form_field_label, password_required
 from flask_security.utils import get_message, _datastore
-from wtforms import StringField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
 
 
 # TODO: Still doesn't work properly.
@@ -23,3 +23,4 @@ class ExtendedLoginForm(LoginForm):
         if self.user is None:
             self.username.errors.append(get_message('USER_DOES_NOT_EXIST')[0])
             return False
+
