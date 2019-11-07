@@ -64,7 +64,8 @@
     <div class="col-sm-10 float-left p-0">
         <form id="form_solution" action="{{url_for('solution', file_id=file_id, position=position)}}" method="post">
             <input type="hidden" name="student_answer" id="student_answer" value="" />
-            <input type="submit" class="input-group" value="Submit answer" />
+            <input type="submit" {% if segment.transcript is none %}disabled{% endif %} class="input-group" value="Submit answer" />
+
         </form>
 
         <div id="nextPrev">

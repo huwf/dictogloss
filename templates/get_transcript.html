@@ -1,11 +1,11 @@
 {% if error %}
-<div class="alert alert-danger">
+<div class="alert alert-danger col-sm-10 float-right">
     <strong class="d-block">Error code returned</strong>
     <p>There was an error retrieving the transcript. The details are:</p>
     <p>{{error}}</p>
 </div>
 {% else %}
-<div class="alert alert-success">
+<div class="alert alert-success alert col-sm-10 float-right">
     <strong class="d-block">Success!</strong>
     <p>The transcript for segment {{position}} was successfully retrieved. <a href="{{ url_for('solution', file_id=file_id, position=position) }}">View answer</a> </p>
 </div>

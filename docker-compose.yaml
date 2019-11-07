@@ -2,7 +2,7 @@ version: '3'
 
 services:
   flask:
-    image: huwf/dictogloss:0.3
+    build: ./
     ports:
       - 127.0.0.1:5000:5000
 #      - 127.0.0.1:5001:443
@@ -13,12 +13,17 @@ services:
       VIRTUAL_PORT: 5000
 #      VIRTUAL_PROTO: https
       LETSENCRYPT_HOST: dictogloss.huwfryer.co.uk
-      LETSENCRYPT_EMAIL: huwfryer@gmail.com
+      LETSENCRYPT_EMAIL: ${DEFAULT_EMAIL}
+
+      DEFAULT_EMAIL: ${DEFAULT_EMAIL}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD}
+
     volumes:
       - ./letsencrypt:/etc/letsencrypt
       - ./config.py:/usr/src/config.py
       - mp3:/usr/src/static/mp3
-
+      - ./database.db:/usr/src/database.db
+      - ./API_KEY.json:/usr/src/API_KEY.json
 # SEE: https://github.com/buchdag/letsencrypt-nginx-proxy-companion-compose/blob/master/2-containers/compose-v3/labels/docker-compose.yaml
 # For examples on how to set up the letsencrypt service
   nginx_proxy:
@@ -52,7 +57,7 @@ services:
     restart: always
 
 volumes:
-
+  db:
   mp3:
   conf:
   vhost:

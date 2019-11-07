@@ -7,7 +7,7 @@ import os
 
 from flask_login import current_user
 
-
+from requests.exceptions import HTTPError
 from database import db, init_db
 from models import get_base_info, get_segment, get_downloads, get_full_filename, User, Role
 from custom import ExtendedLoginForm
@@ -87,8 +87,7 @@ def retrieve_transcript(file_id, position):
     file_id, position = _parse_args(file_id, position)
     try:
         obj = get_base_info(file_id)
-        if current_user.seconds_available < obj.segment_length:
-            from requests.exceptions import HTTPError
+        if current_user.seconds_available < obj.segment_length:            
             raise HTTPError('You do not have enough credit available to download this segment')
         segment = get_segment(obj, file_id, position, update=True)
         current_user.seconds_available -= obj.segment_length
@@ -155,7 +154,7 @@ def solution(file_id, position):
         re.sub(r'[\.,-]', '', segment.transcript.lower())
 
         student_solution, google_solution = differ.diff_prettyHtml(differ.diff_main(student_solution, segment.transcript))
-        return render_template('solution.html', obj=obj, file_id=file_id, segment=segment,
+        return render_template('solution.html', obj=obj, file_id=file_id, segment=segment, position=position,
                                filename=full_filename, student_solution=student_solution, google_solution=google_solution,
                                confidence='{:.2f}'.format(segment.confidence))
 

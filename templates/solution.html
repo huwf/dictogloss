@@ -16,22 +16,22 @@
 {% endif %}
 {% endblock %}
 
-<div id="exercise" class="col-sm-6 float-left">
+<div id="exercise" class="col-sm-5 float-left">
     <h3>Your answer</h3>
     {{student_solution|safe}}
 
 </div>
-<div id="solution" class="col-sm-6 float-right">
+<div id="solution" class="col-sm-5 float-right">
     <h3>Transcript (Confidence {{confidence}})</h3>
     {{google_solution|safe}}
 </div>
 
 <div id="nextPrev">
     {% if position > 1 %}
-    <span class="float-left"><a href="{{solution('play_file', file_id=file_id, position=position-1)}}">Prev</a></span>
+    <span class="float-left"><a href="{{url_for('play_file', file_id=file_id, position=position-1)}}">Prev</a></span>
     {% endif %}
     {% if position < obj.segments|length %}
-    <span class="float-right"><a href="{{solution('play_file', file_id=file_id, position=position+1)}}">Next</a></span>
+    <span class="float-right"><a href="{{url_for('play_file', file_id=file_id, position=position+1)}}">Next</a></span>
     {% endif %}
 </div>
 

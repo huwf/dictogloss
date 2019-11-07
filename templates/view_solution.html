@@ -7,12 +7,17 @@
 <div>
     <p>There is no solution available for this segment. <button data-file_id="{{file_id}}" data-position="{{position}}" id="retrieve">Retrieve one</button></p>
 </div>
-{% endif %}
-{% endblock %}
 
-<div id="solution" class="col-sm-12 float-right">
+{% else %}
+
+<div id="solution" class="col-sm-10 float-right">
     <h3>Google answer (Confidence {{confidence}})</h3>
     {{segment.transcript|safe}}
 </div>
+
+{% endif %}
+{% endblock %}
+
+
 
 {% endblock %}

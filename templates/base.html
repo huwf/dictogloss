@@ -19,7 +19,9 @@
                     <a href="{{url_for('downloads')}}">Downloads</a>
                 </nav>
                 {% if current_user.is_authenticated %}
-                <span id="seconds_available" class="float-right">Seconds available: {{current_user.seconds_available}}</span>
+		<p style="text-align:right;">
+		Seconds available: <span id="seconds_available"> {{current_user.seconds_available}}</span>
+		</p>
                 {% endif %}
             </header>
 
