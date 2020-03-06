@@ -2,9 +2,11 @@ FROM python:3.6-alpine as dependencies
 
 COPY ./requirements.txt .
 
-RUN apk add --update python3-dev build-base && pip install -r requirements.txt
+RUN apk add --update --no-cache python3-dev build-base && pip install -r requirements.txt
 
 FROM python:3.6-alpine
+
+WORKDIR /usr/src/app
 
 ENV GOOGLE_APPLICATION_CREDENTIALS="API_KEY.json" \
     FLASK_APP="app" \
@@ -13,13 +15,13 @@ ENV GOOGLE_APPLICATION_CREDENTIALS="API_KEY.json" \
 COPY --from=dependencies /root/.cache /root/.cache
 COPY --chown=1000:1000 ./ ./
 
-RUN addgroup -S worker && adduser -S worker -G worker && chown -R worker:worker /usr/src \
+RUN addgroup -S worker && adduser -S worker -G worker && chown -R worker:worker /usr/src/app \
 && pip install -r requirements.txt \
-&& apk add ffmpeg \
+&& apk add --no-cache ffmpeg \
 && rm -rf /root/.cache \
 && rm -rf /var/cache/apk/* /tmp/*
 
-WORKDIR /usr/src
+
 USER worker
 
 CMD python -u -m flask run
