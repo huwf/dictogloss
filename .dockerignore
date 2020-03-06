@@ -10,4 +10,6 @@ venv/
 database.db
 API_KEY.json
 static/mp3/*
+static/images/*
 ./config.py
+extra/
