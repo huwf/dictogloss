@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  flask:
+    build: ./server
+    ports:
+      - 127.0.0.1:5000:80
+      - 127.0.0.1:5001:443
+    restart: always
+    environment:
+      FLASK_RUN_HOST: 0.0.0.0
+      VIRTUAL_HOST: dictogloss.huwfryer.co.uk
+      VIRTUAL_PORT: 5000
+      VIRTUAL_PROTO: https
+#      DB_CONNECTION_STRING: mysql+pymysql://dictogloss:password@mysql:3316/dictogloss
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - site:/usr/src
+
+  mysql:
+    image: mysql/mysql-server:8.0
+    expose:
+      - 3316
+    environment:
+      MYSQL_USER: dictogloss
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: dictogloss
+    volumes:
+      - database:/var/lib/mysql
+
+volumes:
+
+  site:
+  conf:
+  vhost:
+  html:
+  dhparam:
+  certs:
+  database:
+
+

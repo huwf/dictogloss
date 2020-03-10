@@ -4,7 +4,7 @@ import File from './views/File';
 import About from './views/About';
 import Home from './views/Home';
 import Upload from "./views/Upload";
-
+import Media from './views/Media';
 Vue.use(Router);
 
 export default new Router({
@@ -18,9 +18,14 @@ export default new Router({
         {
             path: '/about', component: About, name: 'about'
         },
-
         {
-            path: '/file/:file_id/', component: File
+            path: '/media', component: Media, name: 'media'
+        },
+        {
+            path: '/file/:file_id/:position', component: File, name: 'filePosition'
+        },
+        {
+            path: '/file/:file_id', component: File, name: 'file'
         },
         {
             path: '/upload', component: Upload, name: 'upload'

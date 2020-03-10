@@ -20,9 +20,47 @@ export const api = {
     },
     getFile: async id => {
         const res = await axios.get(baseURL + '/file/' + id);
-        console.log('getFile res', res.data);
+        console.debug('getFile res', res.data.data);
         return res.data.data;
     },
+    getSegment: async (fileId, position) => {
+        console.debug('API: getSegment fileId, position', fileId, position);
+        const res = await axios.get(baseURL + `/segment?file_id=${fileId}&position=${position}`);
+        console.debug('getSegment res.data: ', res.data);
+        return res.data;
+    },
+    getDownloads: async () => {
+        const res = await axios.get(baseURL + '/file/downloads');
+        console.log('res.data', res.data);
+        return res.data;
+    },
+    getAudioSrc: async (segmentId, fileId, position) => {
+        console.log('getAudioSrc', segmentId, fileId, position);
+        let res;
+        if(segmentId) {
+            console.debug('API: getAudioSrc segmentId', segmentId);
+            res = await axios.get(baseURL + `/segment/url?id=${segmentId}`);
+        }
+        else if (fileId && position) {
+            console.debug('API: getAudioSrc fileId, position', fileId, position);
+            res = await axios.get(baseURL + `/segment/url?file_id=${fileId}&position=${position}`);
+        }
+        else {
+            console.debug('API: getAudioSrc fileId only', fileId);
+            res = await axios.get(baseURL + `/file/url?id=${fileId}`);
+        }
+
+        console.debug('getAudioSrc res.data', res.data);
+        return res.data;
+    },
+    getTranscript: async id => {
+        console.debug('getTranscript id', id);
+        const res = await axios.get(baseURL + `/segment/${id}/transcript`);
+        console.log('getTranscript res.data', res.data);
+        return res.data;
+    },
+
+    // Create/Update methods
     upload: async obj => {
         const res = await axios.post(baseURL + '/file/upload', obj);
         return res.data.data;
@@ -30,6 +68,9 @@ export const api = {
     splitFile: async id => {
         const res = await axios.post(baseURL + `/file/${id}/split`);
         return res.data;
-    }
-
+    },
+    transcribe: async id => {
+        const res = await axios.put(baseURL + `/segment/${id}/transcript`);
+        return res.data;
+    },
 };
