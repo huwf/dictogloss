@@ -1,9 +1,10 @@
 # from api.api import app
 
 import csv
-from flask import request, jsonify, url_for, Flask
+from flask import request, jsonify, url_for, Flask, redirect
 from flask_cors import CORS
 import logging
+import os
 
 from server.database import db, init_db
 from server.api.models import BaseAudio, Segment
@@ -36,6 +37,15 @@ def create_user():
 @app.route('/ping')
 def ping():
     return "I'm a teapot", 418
+
+
+def _get_url(obj):
+    """Internal function to get the URL
+    Works out the URL based on the object. Accepts a BaseAudio or a Segment"""
+
+    relative_filename = os.path.join(obj.relative_dir, obj.filename)
+    return url_for('static', filename=relative_filename, _external=True)
+
 
 @app.route('/info/languages/speech')
 def get_speech_languages():
@@ -89,13 +99,18 @@ def save_file():
 @app.route('/file/<file_id>')
 def get_file(file_id):
     """Returns the URL of a file by its ID
+
+    Fields can be specified by
     """
     try:
         f = BaseAudio.get(id=file_id)
+
         # f.url = url_for('static', filename=f.get_download_path(), _external=True)
         # f = db.query(BaseAudio).filter(BaseAudio.id == file_id).first()
         if not f:
             return {'status': 'error', 'message': 'File not found'}, 404
+        data = f.to_json()
+        data['url'] = _get_url(f)
         return {'data': f.to_json(), 'status': 'ok'}
     except Exception as e:
         return {'status': 'error', 'message': str(e)}, 200
@@ -124,7 +139,7 @@ def split_file(id):
     return jsonify(data), 200
 
 @app.route('/file/<id>/url')
-def file_url():
+def file_url(id):
     return '', 200
 
 
@@ -151,6 +166,7 @@ def get_downloads():
     }
     return data, 200
 
+
 @app.route('/segment/<id>')
 def get_segment(id):
     """Returns a segment object requested by ID
@@ -158,19 +174,19 @@ def get_segment(id):
     :param id:
     :return:
     """
-    segment = Segment.get(id)
-    if not segment:
-        data = {
-            'status': 'error',
-            'message': 'This segment ID does not exist'
-        }
-        return data, 404
-    return {'data': segment.to_json(), 'status': 'ok'}, 200
+    return redirect(url_for('find_segment', id=id), 301)
 
 
-def _find_segment():
+# TODO: refactor so there's only one segment route with optional attributes to return
+@app.route('/segment')
+def find_segment():
+    """Search for a segment object
+
+    Currently supported: id, file_id, position
+    """
     params = request.args
     id = params.get('id')
+
     if id:
         segment = Segment.get(id)
     else:
@@ -185,31 +201,21 @@ def _find_segment():
     if not segment:
         data = {
             'status': 'error',
-            'message': 'This segment ID does not exist'
+            'message': 'This segment does not exist'
         }
         return data, 404
-    return segment
 
+    # Decide what fields to return
+    fields = request.args.get('fields')
+    if isinstance(fields, str):
+        fields = [f.lower() for f in fields.split(',')]
 
-# TODO: refactor so there's only one segment route with optional attributes to return
-@app.route('/segment')
-def find_segment():
-    """Search for a segment object
+    data = segment.to_json(fields)
+    # Include the URL unless specified otherwise
+    if 'url' in data:
+        data['url'] = _get_url(segment)
 
-    Currently supported: id, file_id, position
-    """
-    segment = _find_segment()
-    if isinstance(segment, tuple):  # It's an error and it's returning e.g. data, 404
-        return segment
-    return {'data': segment.to_json(), 'status': 'ok'}, 200
-
-
-@app.route('/segment/url')
-def get_segment_url():
-    segment = _find_segment()
-    if isinstance(segment, tuple):  # It's an error and it's returning e.g. data, 404
-        return segment
-    return {'data': url_for('static', _external=True, filename=segment.download_path), 'status': 'ok'}
+    return {'data': data, 'status': 'ok'}, 200
 
 
 @app.route('/segment/<id>/transcript', methods=['GET', 'PUT'])
@@ -241,9 +247,7 @@ def transcription(id):
 
     data = {
         'status': 'ok',
-        'data': {
-            'transcript': segment.transcript, 'confidence': segment.confidence
-        }
+        'data': segment.to_json(['transcript', 'confidence'])
     }
     logger.debug('Completed transcription')
     return data, 200

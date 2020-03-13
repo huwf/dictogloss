@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from server.constants import DEFAULT_SEGMENT_LENGTH, OUTPUT_DIR
+from server.constants import DEFAULT_SEGMENT_LENGTH, SAVE_DIR
 from server.database import Base, db
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy import Float, Text
@@ -39,8 +39,6 @@ class BaseAudio(Base):
         self.pretty_name = pretty_name
         self.source_url = source_url
         self.language = language
-        # This will usually be changed by the app
-        self.url = f'http://{socket.gethostname()}/{self._save_path()}'
 
     @staticmethod
     def get(id=None, source_url=None):
@@ -59,41 +57,23 @@ class BaseAudio(Base):
     def exists(obj):
         return obj is not None
 
-    @property
-    def url(self):
-        """The URL where the file can be accessed, NOT where it's downloaded from (source_url)
-        :return:
-        """
-        if hasattr(self, '_url'):
-            return self._url
-
-        return f'http://{socket.gethostname()}/{self.get_download_path()}'
-
-    @url.setter
-    def url(self, value):
-        self._url = value
-
     def to_json(self):
         return {
             'id': self.id,
             'filename': self.filename,
             'language': self.language or 'unknown',
-            'url': self.url,
             'pretty_name': self.pretty_name,
             'segments': [s.to_json() for s in self.segments]
         }
 
-    # The relative path inside OUTPUT_DIR to download from
-    def get_download_folder(self):
-        return os.path.dirname(self.get_download_path())
+    @property
+    def relative_dir(self):
+        """Calculate the directory to save, inside whatever folder is configured on the server"""
+        return os.path.join(self.extension, str(self.id))
 
-    def get_download_path(self):
-        return os.path.join(self.extension, str(self.id), self.filename)
-        # return f'{self.id}/{self.get_download_folder()}/{self.filename}'
-
-    # The actual path on the disk
     def _save_path(self):
-        return os.path.join(OUTPUT_DIR, self.get_download_path())
+        """The actual path on the disk from the application root directory"""
+        return os.path.join(SAVE_DIR, self.relative_dir, self.filename)
 
     def _save_folder(self):
         return os.path.dirname(self._save_path())
@@ -197,15 +177,12 @@ class Segment(Base):
     def get(id):
         return db.query(Segment).filter(Segment.id == id).first()
 
-    def to_json(self):
+    def to_json(self, fields=None):
+        accepted_fields = ['id', 'position', 'length', 'transcript', 'language', 'confidence', 'protected', 'url']
+        if not fields:
+            fields = accepted_fields
         return {
-            'id': self.id,
-            'position': self.position,
-            'length': self.length,
-            'transcript': self.transcript,
-            'language': self.language,
-            'confidence': self.confidence,
-            'protected': self.protected,
+            f: getattr(self, f, None) for f in fields if f in accepted_fields
         }
 
     def __lt__(self, other):
@@ -215,19 +192,20 @@ class Segment(Base):
         return self.position > other.position
 
     @property
-    def filepath(self):
-        dir = os.path.join(self.base._save_folder(), str(self.length))
-        prefix = '{0:04d}'.format(self.position - 1)
-        return os.path.join(dir, f'{prefix}_{self.base.filename}')
+    def relative_dir(self):
+        return os.path.join(self.base.relative_dir, str(self.length))
 
     @property
-    def download_path(self):
-        dir = os.path.join(self.base.get_download_folder(), str(self.length))
+    def _save_path(self):
+        return os.path.join(SAVE_DIR, self.relative_dir, self.filename)
+
+    @property
+    def filename(self):
+        # dir = os.path.join(self.base._save_folder(), str(self.length))
         prefix = '{0:04d}'.format(self.position - 1)
-        return os.path.join(dir, f'{prefix}_{self.base.filename}')
+        return f'{prefix}_{self.base.filename}'
 
     def retrieve_transcript(self, **kwargs):
-
         encoding = kwargs.get('encoding') or speech.enums.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED
         sample_rate = kwargs.get('encoding') or 44100
         language_code = kwargs.get('language_code') or self.language
@@ -235,7 +213,7 @@ class Segment(Base):
 
         client = speech.SpeechClient()
 
-        with io.open(self.filepath, 'rb') as f:
+        with io.open(self._save_path, 'rb') as f:
             content = f.read()
 
         audio = speech.types.RecognitionAudio(content=content)
@@ -253,24 +231,6 @@ class Segment(Base):
         self.transcript = transcript
         db.commit()
         return transcript, confidence
-
-    def get_full_filename(self):
-        if self.grab:
-            return self._grab_filename()
-        elif not self.position:
-            raise Exception('Programmer error: position needed to get "position" full name')
-        return self.position_filename()
-
-    def _grab_filename(self):
-        raise NotImplementedError('Grab has not been implemented yet')
-
-    def position_filename(self):
-        base = self.base
-        dirname = base.get_download_folder()
-        position = '.{:04}'.format(int(self.position) - 1)
-        filename = f'{self.length}_{base.filename.rstrip(base.extension)}.{position}.{base.extension}'
-
-        return f'{dirname}/{filename}'
 
 
 class SegmentUsers(Base):

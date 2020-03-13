@@ -39,15 +39,15 @@ export const api = {
         let res;
         if(segmentId) {
             console.debug('API: getAudioSrc segmentId', segmentId);
-            res = await axios.get(baseURL + `/segment/url?id=${segmentId}`);
+            res = await axios.get(baseURL + `/segment?id=${segmentId}&fields=url`);
         }
         else if (fileId && position) {
             console.debug('API: getAudioSrc fileId, position', fileId, position);
-            res = await axios.get(baseURL + `/segment/url?file_id=${fileId}&position=${position}`);
+            res = await axios.get(baseURL + `/segment?file_id=${fileId}&position=${position}&fields=url`);
         }
         else {
             console.debug('API: getAudioSrc fileId only', fileId);
-            res = await axios.get(baseURL + `/file/url?id=${fileId}`);
+            res = await axios.get(baseURL + `/file/id?fields=${fileId}`);
         }
 
         console.debug('getAudioSrc res.data', res.data);

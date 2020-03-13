@@ -31,6 +31,7 @@
                     this.busy = false;
                     this.transcript = resp.data.transcript;
                     this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
+                    this.$emit('got-transcript', this.transcript);
                 });
 
 

@@ -15,10 +15,10 @@
         props: ['file','fileId', 'position'],
         watch: {
             position: function(newVal, oldVal) {
-                console.log('newVal', newVal, 'oldVal', oldVal);
+                console.log('watch positionnewVal', newVal, 'oldVal', oldVal);
                 api.getAudioSrc(this.segment, this.fileId, this.position).then(resp => {
-                    console.log('resp', resp.data);
-                    this.playerSource = resp.data;
+                    console.log('resp.data', resp.data);
+                    this.playerSource = resp.data.url;
                 });
             },
             file: function (newVal) {
@@ -40,7 +40,7 @@
                 console.debug('fileId and position');
                 api.getAudioSrc(this.segment, this.fileId, this.position).then(resp => {
                     console.log('mounted: resp', resp.data);
-                    this.playerSource = resp.data;
+                    this.playerSource = resp.data.url;
                 });
             }
             else if (this.file) {
