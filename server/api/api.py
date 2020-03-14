@@ -105,13 +105,13 @@ def get_file(file_id):
     try:
         f = BaseAudio.get(id=file_id)
 
-        # f.url = url_for('static', filename=f.get_download_path(), _external=True)
         # f = db.query(BaseAudio).filter(BaseAudio.id == file_id).first()
         if not f:
             return {'status': 'error', 'message': 'File not found'}, 404
-        data = f.to_json()
-        data['url'] = _get_url(f)
+
+        f.url = _get_url(f)
         return {'data': f.to_json(), 'status': 'ok'}
+
     except Exception as e:
         return {'status': 'error', 'message': str(e)}, 200
 
@@ -160,9 +160,11 @@ def grab_file():
 @app.route('/file/downloads')
 def get_downloads():
     downloads = BaseAudio.get_all()
+    for d in downloads:
+        d.url = _get_url(d)
     data = {
         'status': 'ok',
-        'data': [d.to_json() for d in downloads]
+        'data': [d.to_json(['id', 'url', 'pretty_name']) for d in downloads]
     }
     return data, 200
 

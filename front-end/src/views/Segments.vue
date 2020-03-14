@@ -1,6 +1,6 @@
 <template>
     <b-list-group class="col-sm-3 float-left overflow-auto" style="max-height: 95vh;">
-        <b-list-group-item :to="{name: 'file', params: {file_id: file.id}}">
+        <b-list-group-item :to="{name: 'file', params: {file_id: file.id}}" @click="selectFile">
             Whole file
         </b-list-group-item>
         <b-list-group-item @click="selectSegment"
@@ -17,12 +17,6 @@
 <script>
     export default {
         name: 'segments-list',
-        // data: function(){
-        //     console.log('this', this.data);
-        //     return {
-        //         segments: []
-        //     };
-        // },
         props: ['segments', 'file', 'position'],
         methods: {
             selectSegment: function(event) {
@@ -32,6 +26,10 @@
                 let selectedSegment = event.target.attributes.id.value;
                 this.$emit('selectSegment', selectedSegment);
                 this.$emit('selectPosition', selectedPosition);
+            },
+            selectFile: function () {
+                this.$emit('selectSegment', '');
+                this.$emit('selectPosition', '');
             }
         }
     }

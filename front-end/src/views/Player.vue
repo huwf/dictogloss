@@ -1,8 +1,12 @@
 <template>
     <div>
+        <router-link :to="{name: 'filePosition', params: {file_id: file.id, position: parseInt(position) - 1}}"
+                     v-if="position > 1">Previous</router-link>
         <audio v-bind:src="playerSource" controls>
             Your device does not support the audio format
         </audio>
+        <router-link :to="{name: 'filePosition', params: {file_id: file.id, position: parseInt(position) + 1}}"
+                     v-if="position && position < file.segments.length">Next</router-link>
     </div>
 
 </template>
@@ -17,7 +21,7 @@
             position: function(newVal, oldVal) {
                 console.log('watch positionnewVal', newVal, 'oldVal', oldVal);
                 api.getAudioSrc(this.segment, this.fileId, this.position).then(resp => {
-                    console.log('resp.data', resp.data);
+                    console.log('getAudioSrc resp.data', resp.data);
                     this.playerSource = resp.data.url;
                 });
             },
@@ -39,7 +43,7 @@
             if (this.fileId && this.position) {
                 console.debug('fileId and position');
                 api.getAudioSrc(this.segment, this.fileId, this.position).then(resp => {
-                    console.log('mounted: resp', resp.data);
+                    console.log('mounted getAudioSrc: resp', resp.data);
                     this.playerSource = resp.data.url;
                 });
             }

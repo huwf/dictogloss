@@ -4,6 +4,8 @@
             <h2>{{file.pretty_name}}</h2>
             <p>Language: {{file.language}}</p>
 
+            <audio-player :file="file" :fileId="this.id" :position="selectedPosition" />
+
             <template v-if="file.segments.length === 0">
                 <p>There are no segments associated with this file.</p>
                 <form class="d-inline" @submit.prevent="splitFile">
@@ -12,7 +14,7 @@
                     <b-button @click="splitFile" type="submit">Split it</b-button>
                 </form>
             </template>
-            <audio-player :file="file" :fileId="this.id" :position="selectedPosition" />
+
             <template v-if="selectedPosition">
                 <h3>Transcribe</h3>
                 <transcribe-modes :segmentId="selectedSegment" />
@@ -54,10 +56,14 @@
             //     console.log(this);
             // });
             console.log('mounted this.id this.selectedPosition', this.id, this.selectedPosition);
-            this.file = await api.getFile(this.id);
-            const res = await api.getSegment(this.id, this.selectedPosition);
-            console.log('getSegment data: ', res.data);
-            this.selectedSegment = res.data.id;
+            api.getFile(this.id).then(resp => {
+               console.log('getFile response', resp.data);
+               this.file = resp.data;
+            });
+
+            // const res = await api.getSegment(this.id, this.selectedPosition);
+            // console.log('getSegment data: ', res.data);
+            // this.selectedSegment = res.data.id;
 
 
         },

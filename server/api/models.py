@@ -39,6 +39,7 @@ class BaseAudio(Base):
         self.pretty_name = pretty_name
         self.source_url = source_url
         self.language = language
+        self.url = None
 
     @staticmethod
     def get(id=None, source_url=None):
@@ -57,14 +58,17 @@ class BaseAudio(Base):
     def exists(obj):
         return obj is not None
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'filename': self.filename,
-            'language': self.language or 'unknown',
-            'pretty_name': self.pretty_name,
-            'segments': [s.to_json() for s in self.segments]
+    def to_json(self, fields=None):
+
+        accepted_fields = ['id', 'language', 'pretty_name', 'url']
+        if not fields:
+            fields = accepted_fields
+        ret = {
+            f: getattr(self, f, None) for f in fields if f in accepted_fields
         }
+        segments = [s.to_json() for s in self.segments]
+        ret['segments'] = segments
+        return ret
 
     @property
     def relative_dir(self):
@@ -115,7 +119,7 @@ class BaseAudio(Base):
 
         # TODO: Choice between different tools?
         args = [
-            'ffmpeg', '-i', self.get_download_path(),
+            'ffmpeg', '-i', self._save_path(),
             '-f', 'segment',
             '-segment_time', str(seconds),
             '-c', 'copy', ffmpeg_path

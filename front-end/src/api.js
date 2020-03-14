@@ -20,8 +20,8 @@ export const api = {
     },
     getFile: async id => {
         const res = await axios.get(baseURL + '/file/' + id);
-        console.debug('getFile res', res.data.data);
-        return res.data.data;
+        console.debug('getFile res.data', res.data);
+        return res.data;
     },
     getSegment: async (fileId, position) => {
         console.debug('API: getSegment fileId, position', fileId, position);
@@ -47,7 +47,7 @@ export const api = {
         }
         else {
             console.debug('API: getAudioSrc fileId only', fileId);
-            res = await axios.get(baseURL + `/file/id?fields=${fileId}`);
+            res = await axios.get(baseURL + `/file/${fileId}?fields=url`);
         }
 
         console.debug('getAudioSrc res.data', res.data);
