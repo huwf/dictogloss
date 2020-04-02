@@ -20,13 +20,13 @@
 
     export default {
         'name': 'transcribe-segment',
-        'props': ['segmentId'],
-        'watch': {
-            segmentId: function (newVal) {
-                this.segmentId = newVal;
 
-                console.debug('Transcribe mounted getTranscript segmentId', newVal);
-                api.getTranscript(this.segmentId).then(resp => {
+        'watch': {
+            $route: function (newVal) {
+                this.position = this.$router.currentRoute.params.position;
+
+                console.debug('Transcribe mounted getTranscript position', newVal);
+                api.getTranscript(this.file, this.position).then(resp => {
                     console.log('Transcribe mounted resp.data', resp.data);
                     this.busy = false;
                     this.transcript = resp.data.transcript;
@@ -41,14 +41,17 @@
             return {
                 transcript: '',
                 confidence: '',
-                busy: false
+                busy: false,
+                file: this.$router.currentRoute.params.file_id,
+                position: this.$router.currentRoute.params.position,
+
             }
         },
         methods: {
             transcribe: function () {
                 console.log('clicked transcribe');
                 this.busy = true;
-                api.transcribe(this.segmentId).then(resp => {
+                api.transcribe(this.file, this.position).then(resp => {
                     console.log('Finished transcribing');
                     this.transcript = resp.data.transcript;
                     this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
@@ -57,7 +60,15 @@
             }
         },
         async mounted() {
-
+            // let file = this.$router.currentRoute.params.file_id;
+            // let position = this.$router.currentRoute.params.position;
+            api.getTranscript(this.file, this.position).then(resp => {
+                console.log('Transcribe mounted resp.data', resp.data);
+                this.busy = false;
+                this.transcript = resp.data.transcript;
+                this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
+                this.$emit('got-transcript', this.transcript);
+            });
         }
     };
 </script>

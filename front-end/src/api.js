@@ -53,9 +53,10 @@ export const api = {
         console.debug('getAudioSrc res.data', res.data);
         return res.data;
     },
-    getTranscript: async id => {
-        console.debug('getTranscript id', id);
-        const res = await axios.get(baseURL + `/segment/${id}/transcript`);
+    getTranscript: async (fileId, position) => {
+        console.debug('getTranscript fileId position', fileId, position);
+        // const res = await axios.get(baseURL + `/segment/${id}/transcript`);
+        const res = await axios.get(baseURL + `/transcript/${fileId}/${position}`);
         console.log('getTranscript res.data', res.data);
         return res.data;
     },
@@ -69,8 +70,8 @@ export const api = {
         const res = await axios.post(baseURL + `/file/${id}/split`);
         return res.data;
     },
-    transcribe: async id => {
-        const res = await axios.put(baseURL + `/segment/${id}/transcript`);
+    transcribe: async (fileId, position) => {
+        const res = await axios.put(baseURL + `/transcript/${fileId}/${position}`);
         return res.data;
     },
 };

@@ -10,7 +10,7 @@
             </b-form-radio-group>
         </b-form-group>
         <!--TODO: move boolean to a method or something-->
-        <transcribe-exercise :segmentId="segmentId" />
+        <transcribe-exercise />
         <!--<transcribe-segment :segmentId="segmentId" v-if="viewMode === 'simple' || answerGiven" />-->
     </div>
 

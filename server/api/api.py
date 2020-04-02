@@ -220,17 +220,8 @@ def find_segment():
     return {'data': data, 'status': 'ok'}, 200
 
 
-@app.route('/segment/<id>/transcript', methods=['GET', 'PUT'])
-def transcription(id):
-    """Gets or sets the transcript for segment <id>
+def _transcribe(segment):
 
-    For a GET request, the ID is the ID of the segment which is passed in the route.
-
-    For a PUT request, the following may be set in the request body:
-    encoding=speech.enums.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED,
-                            sample_rate=44100, language_code='sv-SE', automatic_punctuation=True
-    """
-    segment = Segment.get(id)
     if not segment:
         data = {
             'status': 'error',
@@ -253,6 +244,27 @@ def transcription(id):
     }
     logger.debug('Completed transcription')
     return data, 200
+
+
+@app.route('/transcript/<file>/<position>', methods=['GET', 'PUT'])
+def transcription_by_position(file, position):
+    logger.debug(f'file: {file}')
+    segment = BaseAudio.get(file).get_segment(position)
+    return _transcribe(segment)
+
+
+@app.route('/segment/<id>/transcript', methods=['GET', 'PUT'])
+def transcription(id):
+    """Gets or sets the transcript for segment <id>
+
+    For a GET request, the ID is the ID of the segment which is passed in the route.
+
+    For a PUT request, the following may be set in the request body:
+    encoding=speech.enums.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED,
+                            sample_rate=44100, language_code='sv-SE', automatic_punctuation=True
+    """
+    segment = Segment.get(id)
+    return _transcribe(segment)
 
 
 @app.route('/user/<id>/assign_ownership')

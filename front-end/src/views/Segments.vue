@@ -22,15 +22,18 @@
             selectSegment: function(event) {
                 // TODO: There HAS to be a better way to do this
                 console.debug('event.target', event.target.attributes.position.value);
-                let selectedPosition = event.target.attributes.position.value;
+                // let selectedPosition = event.target.attributes.position.value;
                 let selectedSegment = event.target.attributes.id.value;
                 this.$emit('selectSegment', selectedSegment);
-                this.$emit('selectPosition', selectedPosition);
+                // this.$emit('selectPosition', selectedPosition);
             },
             selectFile: function () {
                 this.$emit('selectSegment', '');
                 this.$emit('selectPosition', '');
             }
-        }
+        },
+        // mounted() {
+        //     this.position = this.$router.currentRoute.params.position;
+        // }
     }
 </script>

@@ -19,7 +19,7 @@
         props: ['file','fileId', 'position'],
         watch: {
             position: function(newVal, oldVal) {
-                console.log('watch positionnewVal', newVal, 'oldVal', oldVal);
+                console.log('watch position newVal', newVal, 'oldVal', oldVal);
                 api.getAudioSrc(this.segment, this.fileId, this.position).then(resp => {
                     console.log('getAudioSrc resp.data', resp.data);
                     this.playerSource = resp.data.url;
@@ -30,7 +30,8 @@
                 if (!this.position) {
                     this.playerSource = newVal.url;
                 }
-            }
+            },
+
         },
         data: function () {
             return {
@@ -55,5 +56,12 @@
                 console.debug('mounted this', this);
             }
         },
+        // watch: {
+        //
+        //     // selectSegmentUp() {
+        //     //     this.position += 1;
+        //     //     this.$emit('selectPosition', this.position);
+        //     // }
+        // }
     };
 </script>

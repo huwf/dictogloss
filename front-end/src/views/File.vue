@@ -4,7 +4,7 @@
             <h2>{{file.pretty_name}}</h2>
             <p>Language: {{file.language}}</p>
 
-            <audio-player :file="file" :fileId="this.id" :position="selectedPosition" />
+            <audio-player :file="file" :fileId="this.id" :position="position" />
 
             <template v-if="file.segments.length === 0">
                 <p>There are no segments associated with this file.</p>
@@ -15,13 +15,13 @@
                 </form>
             </template>
 
-            <template v-if="selectedPosition">
+            <template v-if="position">
                 <h3>Transcribe</h3>
-                <transcribe-modes :segmentId="selectedSegment" />
+                <transcribe-modes />
             </template>
         </b-container>
 
-        <segments-list :segments="file.segments" :file="file" :position="this.position" @selectPosition="selectPosition" @selectSegment="selectSegment" />
+        <segments-list :segments="file.segments" :file="file" :position="this.position" @selectSegment="selectSegment" />
     </div>
 
 </template>
@@ -47,6 +47,15 @@
                 selectedPosition: this.$router.currentRoute.params.position,
                 selectedSegment: ''
             };
+        },
+        watch: {
+            $route(to, from) {
+                console.debug(`route change to from:`, to, from);
+                // this.position = to.params.position;
+                // let newPosition =
+                // // this.selectedPosition = newPosition;
+                this.position = this.$router.currentRoute.params.position;
+            },
         },
         async mounted() {
             // let id = ;
