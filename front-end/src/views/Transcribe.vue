@@ -60,8 +60,6 @@
             }
         },
         async mounted() {
-            // let file = this.$router.currentRoute.params.file_id;
-            // let position = this.$router.currentRoute.params.position;
             api.getTranscript(this.file, this.position).then(resp => {
                 console.log('Transcribe mounted resp.data', resp.data);
                 this.busy = false;

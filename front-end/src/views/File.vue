@@ -58,22 +58,11 @@
             },
         },
         async mounted() {
-            // let id = ;
-            // axios.get('http://localhost:5000/file/' + this.id).then(response => {
-            //     console.log('Response: ', response);
-            //     this.file = response.data;
-            //     console.log(this);
-            // });
             console.log('mounted this.id this.selectedPosition', this.id, this.selectedPosition);
             api.getFile(this.id).then(resp => {
                console.log('getFile response', resp.data);
                this.file = resp.data;
             });
-
-            // const res = await api.getSegment(this.id, this.selectedPosition);
-            // console.log('getSegment data: ', res.data);
-            // this.selectedSegment = res.data.id;
-
 
         },
         methods: {
@@ -88,10 +77,6 @@
                 this.selectedPosition = segmentPosition;
                 console.debug('this: ', this);
             },
-            selectSegment: function (segmentId) {
-                console.log('Selected segment ID: ', segmentId);
-                this.selectedSegment = segmentId;
-            }
         }
     }
 
