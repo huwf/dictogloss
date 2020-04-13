@@ -4,8 +4,10 @@ import axios from 'axios';
 // import 'vue-flash-message/dist/vue-flash-message.min.css';
 
 // const vm = new Vue();
-const baseURL = 'http://172.17.0.1:5000';
 
+const baseURL = process.env.VUE_APP_API ? process.env.VUE_APP_API : 'http://172.17.0.1:5000';
+console.log('baseURL', baseURL);
+console.log('process.env', process.env);
 // const handleError = fn => (...params) =>
 //     fn(...params).catch(error => {
 //         console.log(error);
@@ -14,8 +16,9 @@ const baseURL = 'http://172.17.0.1:5000';
 
 export const api = {
     getLanguages: async () => {
+        console.debug('getLanguages api called');
         const res = await axios.get(baseURL + '/info/languages/speech');
-        console.log('res: ', res.data.data);
+        console.debug('res: ', res.data.data);
         return res.data.data;
     },
     getFile: async id => {

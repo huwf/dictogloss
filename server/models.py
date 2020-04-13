@@ -25,11 +25,11 @@ logging.basicConfig(level=logging.DEBUG)
 class BaseAudio(Base):
     __tablename__ = 'base_audio_file'
     id = Column(Integer, primary_key=True)
-    filename = Column(String)
-    pretty_name = Column(String)
-    source_url = Column(String)
+    filename = Column(String(64))
+    pretty_name = Column(String(128))
+    source_url = Column(String(256))
     language = Column(String(8), nullable=True)
-    hash = Column(String, nullable=True)
+    hash = Column(String(128), nullable=True)
     # Allow a user to protect a file if they want to
     protected = Column(Boolean, default=False)
     extension = Column(String(6), default='mp3')

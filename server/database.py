@@ -3,8 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from server.constants import DB_CONNECTION_STRING
+print('CONNECTION STRING: %s', DB_CONNECTION_STRING)
 
-engine = create_engine(DB_CONNECTION_STRING, connect_args={'check_same_thread': False})
+engine = create_engine(DB_CONNECTION_STRING)
 
 db = scoped_session(sessionmaker(bind=engine))
 

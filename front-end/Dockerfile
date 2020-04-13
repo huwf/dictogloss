@@ -13,5 +13,6 @@ RUN echo "prefix=$NPM_PACKAGES" >> "/home/node/.npmrc" && \
 
 USER node
 WORKDIR /usr/src/app
+COPY ./ ./
 
 CMD npm run serve

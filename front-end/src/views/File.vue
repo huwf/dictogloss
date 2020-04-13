@@ -21,7 +21,7 @@
             </template>
         </b-container>
 
-        <segments-list :segments="file.segments" :file="file" :position="this.position" @selectSegment="selectSegment" />
+        <segments-list :segments="file.segments" :file="file" :position="this.position" />
     </div>
 
 </template>
@@ -51,9 +51,6 @@
         watch: {
             $route(to, from) {
                 console.debug(`route change to from:`, to, from);
-                // this.position = to.params.position;
-                // let newPosition =
-                // // this.selectedPosition = newPosition;
                 this.position = this.$router.currentRoute.params.position;
             },
         },

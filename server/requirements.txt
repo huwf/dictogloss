@@ -9,3 +9,5 @@ google-cloud-translate
 sqlalchemy
 bs4
 flask-oauthlib
+pymysql
+cryptography

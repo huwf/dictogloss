@@ -7,7 +7,7 @@ import logging
 import os
 
 from server.database import db, init_db
-from server.api.models import BaseAudio, Segment
+from server.models import BaseAudio, Segment
 
 
 app = Flask(__name__)
@@ -18,6 +18,7 @@ CORS(app)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
 
 
 @app.before_first_request
@@ -34,8 +35,10 @@ def create_user():
     #                                seconds_available=600)
     db.commit()
 
+
 @app.route('/ping')
 def ping():
+    logger.debug('/ping')
     return "I'm a teapot", 418
 
 
@@ -49,11 +52,12 @@ def _get_url(obj):
 
 @app.route('/info/languages/speech')
 def get_speech_languages():
-    with open('language_codes.csv', encoding='utf-8') as f:
+    logger.debug('/info/languages/speech %s', request.args)
+    with open('./server/language_codes.csv', encoding='utf-8') as f:
         reader = csv.reader(f)
         next(reader)
         ret = [{'code': row[1], 'language': row[0]} for row in reader]
-        return {'status': 'ok', 'data': ret }, 200
+        return {'status': 'ok', 'data': ret}, 200
 
 
 @app.route('/file/upload', methods=['POST'])

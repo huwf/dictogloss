@@ -16,11 +16,13 @@
 
 <style>
     /*These classes are in Diff2Html    */
-    .d2h-code-line, .d2h-code-side-line {
+    .d2h-code-line > * {
         width: 100%;
         display: inline-block;
         overflow: auto;
-        word-wrap: break-spaces;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
     }
     .d2h-code-line ins, .d2h-code-side-line ins {
         display: inline;
@@ -81,8 +83,7 @@
                             {{^content}}
                                 <span class="d2h-code-line-ctn"><br></span>
                             {{/content}}
-                            </div>
-`
+                            </div>`
                     }
                 });
                 this.diffHtml = outputDiffHtml; //.replace(/<td/g, '<div').replace(/<\/td/g, '</div').replace(/<tr>/g, '').replace(/<\/tr>/g, '');
