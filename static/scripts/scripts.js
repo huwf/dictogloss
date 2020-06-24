@@ -36,7 +36,7 @@ $(document).ready(function () {
             // TODO: Don't know why this isn't working with jQuery, but this is simple enough for vanilla JS
             document.getElementById('retrieve').parentNode.parentNode.innerHTML = data;
             // Keep the "seconds available" up to date...
-            document.getElementById('seconds_available').innerHTML = parseInt($('audio')[0].duration);
+            $('#seconds_available').text(Math.floor(parseInt($('#seconds_available').text()) - $('audio')[0].duration));
             $('.spinner-border').hide();
 
         });
@@ -51,4 +51,9 @@ $(document).ready(function () {
         $('#playerSpeed').text(rate * 100);
     });
 
+  // Only works on the POST solution view
+  $('#exercise').height($('#solution').height());
+
 });
+
+
