@@ -1,7 +1,7 @@
 <template>
     <div>
         <b-form-group label="Display mode">
-            <b-form-radio-group v-model="viewMode" @load="$emit('emitMode', 'fsdfdsfsdfds')">
+            <b-form-radio-group v-model="viewMode" @load="$emit('emitMode', 'simple')">
                 <b-form-radio value="simple">Simple</b-form-radio>
                 <b-form-radio value="practice-first">Practice</b-form-radio>
 <!--                <b-form-radio value="test" disabled>Test</b-form-radio>-->
@@ -43,11 +43,11 @@ import TranscribeExercise from "./TranscribeExercise";
             }
         },
         methods:{
-            // emitMode: function () {
-            //     alert('emitMode');
-            //     console.debug('Emiting transcript mode as:', this.viewMode);
-            //     this.$emit('viewMode', this.viewMode);
-            // }
+            emitMode: function () {
+                alert('emitMode');
+                console.debug('Emiting transcript mode as:', this.viewMode);
+                this.$emit('viewMode', this.viewMode);
+            }
         }
 
     }

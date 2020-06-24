@@ -75,6 +75,7 @@ export const api = {
     },
     transcribe: async (fileId, position) => {
         const res = await axios.put(baseURL + `/transcript/${fileId}/${position}`);
+        // return await axios.put(baseURL + `/transcript/${fileId}/${position}`);  // .data;
         return res.data;
     },
 };

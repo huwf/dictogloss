@@ -46,7 +46,7 @@
             return {
                 transcript: '',
                 confidence: '',
-                viewMode: '',
+                viewMode: 'simple',
                 busy: false,
                 file: this.$router.currentRoute.params.file_id,
                 position: this.$router.currentRoute.params.position,
@@ -54,18 +54,29 @@
             }
         },
         methods: {
-            transcribe: function () {
-                console.log('clicked transcribe');
-                this.busy = true;
+            transcribe() {
+                console.log('clicked transcribe this', this);
+                // this.busy = true;
+                // const resp = await api.transcribe(this.file, this.position);
+                // console.log('Finished transcribing', resp.data);
+                // this.transcript = resp.data.transcript;
+                // this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
+                // this.busy = false;
+                // console.debug('this.transcript, this.confidence', this.transcript, this.confidence);
                 api.transcribe(this.file, this.position).then(resp => {
-                    console.log('Finished transcribing');
+                    // resp = resp.data;
+                    console.log('Finished transcribing', resp.data);
+                    console.log('api.transcribe this', this);
+
                     this.transcript = resp.data.transcript;
                     this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
                     this.busy = false;
+                    console.debug('this.transcript, this.confidence', this.transcript, this.confidence);
+                    console.log('this', this);
                 });
             },
             setViewMode: function (event) {
-                alert('Hello');
+                // alert('Hello');
                 console.log('setViewMode', event);
                 this.viewMode = event;
             }
