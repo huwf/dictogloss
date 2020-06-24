@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
-
+import os
 from server.constants import DB_CONNECTION_STRING
 print('CONNECTION STRING: %s', DB_CONNECTION_STRING)
 

@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 
-
 @app.before_first_request
 def create_user():
     init_db()
@@ -56,7 +55,9 @@ def get_speech_languages():
     with open('./server/language_codes.csv', encoding='utf-8') as f:
         reader = csv.reader(f)
         next(reader)
-        ret = [{'code': row[1], 'language': row[0]} for row in reader]
+        # logger.debug('get_speech_languages\n\n\n')
+        ret = sorted([{'code': row[1], 'language': row[0]} for row in reader], key=lambda a: a['language'])
+        logger.debug(f'get_speech_languages {ret}\n\n\n')
         return {'status': 'ok', 'data': ret}, 200
 
 

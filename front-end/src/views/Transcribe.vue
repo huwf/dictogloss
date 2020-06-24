@@ -1,13 +1,16 @@
 <template>
     <div>
-        <b-container>
-            <b-card v-if="transcript">
+        <transcribe-modes @emitMode="setViewMode" />
+        <b-container v-if="transcript">
+            <b-card  v-if="this.viewMode === 'simple'">
                 <b-card-header>
                     Transcript retrieved with confidence {{confidence}}
                 </b-card-header>
                 <b-card-body>{{transcript}}</b-card-body>
             </b-card>
-            <p v-else>
+        </b-container>
+        <b-container v-else>
+            <p>
                 There does not appear to be a transcript associated with this segment. <b-button type="submit" @click="transcribe">Retrieve one</b-button>
                 <b-spinner v-if="busy" />
             </p>
@@ -17,10 +20,11 @@
 
 <script>
     import {api} from "../api";
+    import TranscribeModes from "./TranscribeModes";
 
     export default {
         'name': 'transcribe-segment',
-
+        'components': {TranscribeModes},
         'watch': {
             $route: function (newVal) {
                 this.position = this.$router.currentRoute.params.position;
@@ -33,18 +37,20 @@
                     this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
                     this.$emit('got-transcript', this.transcript);
                 });
-
-
+            },
+            viewMode: function (newVal) {
+                console.log('viewMode changed to ', newVal);
             }
         },
         data: function() {
             return {
                 transcript: '',
                 confidence: '',
+                viewMode: '',
                 busy: false,
                 file: this.$router.currentRoute.params.file_id,
                 position: this.$router.currentRoute.params.position,
-
+                show: false
             }
         },
         methods: {
@@ -57,6 +63,11 @@
                     this.confidence = resp.data.confidence ? resp.data.confidence.toFixed(2) : resp.data.confidence;
                     this.busy = false;
                 });
+            },
+            setViewMode: function (event) {
+                alert('Hello');
+                console.log('setViewMode', event);
+                this.viewMode = event;
             }
         },
         async mounted() {

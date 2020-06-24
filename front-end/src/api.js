@@ -65,9 +65,9 @@ export const api = {
     },
 
     // Create/Update methods
-    upload: async obj => {
-        const res = await axios.post(baseURL + '/file/upload', obj);
-        return res.data.data;
+    upload: obj => {
+        return axios.post(baseURL + '/file/upload', obj);
+        // return res.data.data;
     },
     splitFile: async id => {
         const res = await axios.post(baseURL + `/file/${id}/split`);

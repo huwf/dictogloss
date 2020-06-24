@@ -17,7 +17,7 @@
 
             <template v-if="position">
                 <h3>Transcribe</h3>
-                <transcribe-modes />
+                <transcribe />
             </template>
         </b-container>
 
@@ -31,11 +31,11 @@
     import SegmentsList from "./Segments";
     import {api} from "../api";
     import AudioPlayer from "./Player";
-    import TranscribeModes from "./TranscribeModes";
+    import Transcribe from "./Transcribe";
 
     export default {
         name: 'segment',
-        components: {TranscribeModes, AudioPlayer, SegmentsList},
+        components: {Transcribe, AudioPlayer, SegmentsList},
         data() {
             return {
                 file: {

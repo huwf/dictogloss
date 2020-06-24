@@ -8,6 +8,6 @@ __pycache__
 venv/
 database.db
 API_KEY.json
-server/api/static/mp3/*
+server/static/mp3/*
 ./server/config.py
 ./front-end/node_modules

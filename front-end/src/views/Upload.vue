@@ -1,21 +1,42 @@
 <template>
-    <v-layout wrap align-center>
-        <v-flex xs12 sm6 d-flex>
-            <form action="#" @submit.prevent="formSubmit">
-                <label for="url">URL</label><input type="text" id="url" v-model="file.source_url"><br />
-                <label for="language">Language</label>
-<!--                <select v-model="this.languages" id="language">-->
-<!--                    <option v-for="(lang, index) in languages" v-bind:key="index" v-bind:value="lang.code">-->
-<!--                        {{lang.language}}-->
-<!--                    </option>-->
-<!--                </select>-->
-                <input type="text" value="sv-SE" v-model="file.language" id="language"/>
-                <br />
-                <label for="prettyName">Display name</label><input type="text" id="prettyName" v-model="file.pretty_name"><br />
-                <button type="submit">Submit</button>
-            </form>
-        </v-flex>
-    </v-layout>
+  <b-container fluid>
+    <form action="#" @submit.prevent="formSubmit">
+      <b-form-group
+              label="URL"
+              label-for="url"
+              description="The URL to retrieve the audio file from">
+        <b-form-input
+                type="text"
+                id="url"
+                v-model="file.source_url"
+        ></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+              label-for="languagesList"
+              label="Language"
+              description="The language to transcribe the input file in">
+        <b-form-select id="languagesList" v-model="file.language">
+          <b-form-select-option v-for="(lang, index) in languages"
+                                v-bind:key="index"
+                                v-bind:value="lang.code">
+            {{lang.language}}
+          </b-form-select-option>
+        </b-form-select>
+      </b-form-group>
+
+      <b-form-group label="Display name"
+                    label-for="prettyName"
+                    description="The name which the file will be referred to in future">
+        <b-form-input type="text"
+                      id="prettyName"
+                      v-model="file.pretty_name"></b-form-input>
+      </b-form-group>
+
+      <b-button type="submit" variant="primary">Submit</b-button>
+    </form>
+
+  </b-container>
 
 </template>
 
@@ -30,7 +51,7 @@
         },
         data() {
             return {
-                languages: [],// () => {return []},
+                languages: [],
                 file: {
                     required: true,
                     type: Object,
@@ -45,10 +66,13 @@
             }
         },
         methods: {
-            formSubmit: function(e) {
+            formSubmit(e) {
                 e.preventDefault();
                 console.log('File: ', this.file);
-                api.upload(this.file);
+                api.upload(this.file).then(response => {
+                    console.debug(response.data);
+                    this.$router.push({name: "file", params: {file_id: response.data.id}});
+                });
             }
         },
     }

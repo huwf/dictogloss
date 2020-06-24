@@ -1,12 +1,22 @@
 <template>
     <div>
         <router-link :to="{name: 'filePosition', params: {file_id: file.id, position: parseInt(position) - 1}}"
-                     v-if="position > 1">Previous</router-link>
+                     v-if="position > 1" class="nextPrev" title="Previous segment">
+            <b-icon-skip-start></b-icon-skip-start>
+        </router-link>
+        <div class="nextPrev" v-else disabled="disabled">
+            <b-icon-skip-start></b-icon-skip-start>
+        </div>
         <audio v-bind:src="playerSource" controls>
             Your device does not support the audio format
         </audio>
         <router-link :to="{name: 'filePosition', params: {file_id: file.id, position: parseInt(position) + 1}}"
-                     v-if="position && position < file.segments.length">Next</router-link>
+                     v-if="position && position < file.segments.length" class="nextPrev" title="Next segment">
+            <b-icon-skip-end style=""></b-icon-skip-end>
+        </router-link>
+        <div class="nextPrev" v-else disabled="disabled">
+            <b-icon-skip-end></b-icon-skip-end>
+        </div>
     </div>
 
 </template>
@@ -65,3 +75,13 @@
         // }
     };
 </script>
+
+<style>
+    .nextPrev {
+        background-color: #1b1e21;
+        font-size: 2.2rem;
+        position: relative;
+        bottom: 8px;
+        display: inline;
+    }
+</style>

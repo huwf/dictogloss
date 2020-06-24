@@ -3,12 +3,11 @@
         <template v-if="true">
         <b-form-textarea id="textarea" v-model="userAnswer" placeholder="Enter the transcript of the text" rows="4">
         </b-form-textarea>
-        <b-button type="submit" @click="diffTranscript">Submit</b-button>
+        <b-button type="submit" @click="diffTranscript">Show answer</b-button>
         </template>
 
-        <transcribe-segment @got-transcript="updateTranscript" />
-        <b-container id="diff">
-            <h3>Diff</h3>
+        <b-container id="diff" v-if="this.isSubmitted">
+            <h3>Answer</h3>
             <div v-html="diffHtml"></div>
         </b-container>
     </div>
@@ -30,7 +29,7 @@
 </style>
 
 <script>
-    import TranscribeSegment from "./Transcribe";
+    // import TranscribeSegment from "./Transcribe";
     import * as Diff2Html from 'diff2html';
     import 'diff2html/bundles/css/diff2html.min.css';
     require('colors');
@@ -38,13 +37,14 @@
 
     export default {
         name: 'transcribe-exercise',
-        components: {TranscribeSegment},
+        // components: {TranscribeSegment},
         props: ['segmentId'],
         data: function () {
             return {
                 userAnswer: '',
                 actualAnswer: '',
-                diffHtml: ''
+                diffHtml: '',
+                isSubmitted: false
             }
         },
         methods: {
@@ -55,7 +55,7 @@
                 // Or maybe this way around is better...
                 // let diff = jsdiff.createPatch('transcript', this.actualAnswer, this.userAnswer);
                 // let diff = jsdiff.createTwoFilesPatch('Your answer', "Google's answer", this.userAnswer, this.actualAnswer);
-                let outputDiffHtml = Diff2Html.html(diff, {
+                this.diffHtml = Diff2Html.html(diff, {
                     outputFormat: 'line-by-line', drawFileList: false, diffStyle: "char",
                     rawTemplates: {
                         'generic-empty-diff': '<h2>100% match!</h2>',
@@ -86,7 +86,8 @@
                             </div>`
                     }
                 });
-                this.diffHtml = outputDiffHtml; //.replace(/<td/g, '<div').replace(/<\/td/g, '</div').replace(/<tr>/g, '').replace(/<\/tr>/g, '');
+                // outputDiffHtml; //.replace(/<td/g, '<div').replace(/<\/td/g, '</div').replace(/<tr>/g, '').replace(/<\/tr>/g, '');
+                this.isSubmitted = true;
             },
             updateTranscript(value) {
                 this.actualAnswer = value;
