@@ -1,6 +1,6 @@
 <template>
     <div>
-        <transcribe-modes @emitMode="setViewMode" />
+        <transcribe-modes @emitMode="setViewMode" :transcript="transcript" />
         <b-container v-if="transcript">
             <b-card  v-if="this.viewMode === 'simple'">
                 <b-card-header>

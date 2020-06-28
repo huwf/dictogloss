@@ -63,6 +63,13 @@ export const api = {
         console.log('getTranscript res.data', res.data);
         return res.data;
     },
+    getDiff: async (user, google, first) => {
+        console.debug('Calling getDiff with arguments ', user, google, first);
+        const argsString = `?user=${user}&google=${google}&first=${first}`;
+        const res = await axios.get(`${baseURL}/tools/differ${argsString}`);
+        return res.data;
+
+    },
 
     // Create/Update methods
     upload: obj => {

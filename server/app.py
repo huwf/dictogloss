@@ -1,7 +1,8 @@
 # from api.api import app
 
 import csv
-from flask import request, jsonify, url_for, Flask, redirect
+import difflib
+from flask import request, jsonify, url_for, Flask, redirect, escape
 from flask_cors import CORS
 import logging
 import os
@@ -59,6 +60,47 @@ def get_speech_languages():
         ret = sorted([{'code': row[1], 'language': row[0]} for row in reader], key=lambda a: a['language'])
         logger.debug(f'get_speech_languages {ret}\n\n\n')
         return {'status': 'ok', 'data': ret}, 200
+
+
+@app.route('/tools/differ')
+def diff():
+    try:
+        google_answer = request.args.get('google')
+        user_answer = request.args.get('user')
+        first_arg = request.args.get('first', 'google')
+        assert google_answer, 'Parameter google_answer is required'
+        assert user_answer, 'Parameter user_answer is required'
+        first = google_answer if first_arg == 'google' else user_answer
+        second = user_answer if first == google_answer else google_answer
+
+        differ = difflib.Differ()
+        comp = differ.compare(escape(first), escape(second))
+        ret = []
+        string = ''
+        # current_symbol = ''
+        try:
+            char = next(comp)
+            current_symbol, char = char[0], char[-1]
+            string += char
+            while True:
+                char = next(comp)
+                print(f'char: {char}')
+                symbol, char = char[0], char[-1]
+                if symbol == current_symbol:
+                    string += char
+                else:
+                    ret.append((current_symbol, string))
+                    string = char
+                    current_symbol = symbol
+
+        except StopIteration:
+            ret.append((current_symbol, string))
+            print(ret)
+        return {'status': 'OK', 'data': ret}
+    except AssertionError as e:
+        return {'status': 'error', 'message': str(e)}, 500
+
+
 
 
 @app.route('/file/upload', methods=['POST'])

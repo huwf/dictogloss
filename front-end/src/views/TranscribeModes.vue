@@ -7,7 +7,7 @@
 <!--                <b-form-radio value="test" disabled>Test</b-form-radio>-->
             </b-form-radio-group>
         </b-form-group>
-        <transcribe-exercise v-if="viewMode === 'practice-first'" />
+        <transcribe-exercise v-if="viewMode === 'practice-first'" :actualAnswer="transcript" />
 <!--        <transcribe-segment :segmentId="segmentId" v-else />-->
     </div>
 </template>
@@ -21,7 +21,7 @@ import TranscribeExercise from "./TranscribeExercise";
     export default {
         name: "transcribe-modes",
         components: {TranscribeExercise},
-        props: ['segmentId'],
+        props: ['segmentId', 'transcript'],
         watch: {
             segmentId: function (newVal) {
                 console.log('TranscribeSegment newVal: ', newVal);

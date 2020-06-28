@@ -8,6 +8,23 @@
 
         <b-container id="diff" v-if="this.isSubmitted">
             <h3>Answer</h3>
+<!--             <a href="#answerInfo" data-target="#answerInfo" data-toggle="collapse" role="button" @click="answerInfo">[?]</a>-->
+            <div id="answerInfo"  class="collapse">
+                <div>
+                <h4>What does all this mean?</h4>
+                <p>
+                   This display is a comparison of the answer you submitted, and the extra steps that you would need to have
+                    done to have it match the transcript that was obtained from Google Speech to Text. The key is as follows:
+                </p>
+                <ul>
+                    <li><ins>Text with a green background is text which would need to be added</ins></li>
+                    <li><del>Text with a pink background is text which should have been removed</del></li>
+                    <li>Text without any background does not need to be changed. Well done!</li>
+                </ul>
+                </div>
+
+            </div>
+
             <div v-html="diffHtml"></div>
         </b-container>
     </div>
@@ -15,89 +32,83 @@
 
 <style>
     /*These classes are in Diff2Html    */
-    .d2h-code-line > * {
-        width: 100%;
-        display: inline-block;
-        overflow: auto;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: normal;
+    ins {
+        background-color: #E6FFE6;
     }
-    .d2h-code-line ins, .d2h-code-side-line ins {
-        display: inline;
+    del {
+        background-color: #FFE6E6;
+    }
+    #answerInfo {
+        border: solid 2px gray;
+        padding: 5px;
+        margin: 10px;
     }
 </style>
 
 <script>
     // import TranscribeSegment from "./Transcribe";
-    import * as Diff2Html from 'diff2html';
+    // import * as Diff2Html from 'diff2html';
     import 'diff2html/bundles/css/diff2html.min.css';
+    import {api} from "../api";
     require('colors');
-    const jsdiff = require('diff');
 
     export default {
         name: 'transcribe-exercise',
         // components: {TranscribeSegment},
-        props: ['segmentId'],
+
+        props: ['segmentId', 'actualAnswer'],
         data: function () {
             return {
                 userAnswer: '',
-                actualAnswer: '',
+                // actualAnswer: '',
                 diffHtml: '',
                 isSubmitted: false
             }
         },
         methods: {
+            answerInfo: function(event) {
+                console.debug('Trying to find the answer info');
+                event.preventDefault();
+            },
             diffTranscript: function () {
                 console.debug('diffTranscript method running');
-                // Put the user's answer first, then this.actualAnswer shows what they need to do to get it right
-                let diff = jsdiff.createPatch('transcript', this.userAnswer, this.actualAnswer);
-                // Or maybe this way around is better...
-                // let diff = jsdiff.createPatch('transcript', this.actualAnswer, this.userAnswer);
-                // let diff = jsdiff.createTwoFilesPatch('Your answer', "Google's answer", this.userAnswer, this.actualAnswer);
-                this.diffHtml = Diff2Html.html(diff, {
-                    outputFormat: 'line-by-line', drawFileList: false, diffStyle: "char",
-                    rawTemplates: {
-                        'generic-empty-diff': '<h2>100% match!</h2>',
-                        'line-by-line-numbers.mustache': '',
-                        'line-by-line-file-diff': `<div id="{{fileHtmlId}}" class="d2h-file-wrapper" data-lang="{{file.language}}">
-                            <div class="d2h-file-diff">
-                                <div class="d2h-code-wrapper">
-                                    <div class="d2h-diff-table">
-                                        <div class="d2h-diff-tbody">{{{diffs}}}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`,
-                        'generic-line': `
-                            <div class="{{contentClass}} {{type}}">
-                            <!--{{#prefix}}-->
-                                <!--<span class="d2h-code-line-prefix">{{{prefix}}}</span>-->
-                            <!--{{/prefix}}-->
-                            <!--{{^prefix}}-->
-                                <!--<span class="d2h-code-line-prefix">&nbsp;</span>-->
-                            <!--{{/prefix}}-->
-                            {{#content}}
-                                <span class="d2h-code-line-ctn">{{{content}}}</span>
-                            {{/content}}
-                            {{^content}}
-                                <span class="d2h-code-line-ctn"><br></span>
-                            {{/content}}
-                            </div>`
-                    }
+                api.getDiff(this.userAnswer, this.actualAnswer, 'user').then(response => {
+                    console.log('getDiff response ', response);
+                    console.debug('actualAnswer', this.actualAnswer);
+                    let ret = '';
+                    response.data.forEach(elem => {
+                        console.log('elem', elem);
+                        let symbol = elem[0];
+                        let string = elem[1];
+                        switch (symbol) {
+                            case '-':
+                                ret += `<del>${string}</del>`;
+                                break;
+                            case '+':
+                                ret += `<ins>${string}</ins>`;
+                                break;
+                            default:
+                                ret += `<span class="same">${string}</span>`;
+                        }
+                    });
+                    this.diffHtml = ret;
                 });
-                // outputDiffHtml; //.replace(/<td/g, '<div').replace(/<\/td/g, '</div').replace(/<tr>/g, '').replace(/<\/tr>/g, '');
                 this.isSubmitted = true;
             },
-            updateTranscript(value) {
-                this.actualAnswer = value;
-                console.debug('updateTranscript called with update ', this.actualAnswer);
-            },
+            // updateTranscript(value) {
+            //     this.actualAnswer = value;
+            //     console.debug('updateTranscript called with update ', this.actualAnswer);
+            // },
         },
         watch: {
             userAnswer: function (newVal) {
                 console.log('userAnswer changed to ', newVal);
+            },
+            actualAnswer: function (newVal) {
+                console.log('actualAnswer changed to ', newVal);
             }
+
+
         },
     }
 </script>
