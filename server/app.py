@@ -2,14 +2,16 @@
 
 import csv
 import difflib
+
+import pytz
+import requests
 from flask import request, jsonify, url_for, Flask, redirect, escape
 from flask_cors import CORS
 import logging
 import os
 
 from server.database import db, init_db
-from server.models import BaseAudio, Segment
-
+from server.models import BaseAudio, Segment, RSSChannel, RSSTrack
 
 app = Flask(__name__)
 # app.config.from_object('server.config')
@@ -34,6 +36,10 @@ def create_user():
     #                                password=hash_password(os.environ.get('DEFAULT_PASSWORD')),
     #                                seconds_available=600)
     db.commit()
+
+@app.route('/')
+def home():
+    return "I'm Ron Burgundy?", 200
 
 
 @app.route('/ping')
@@ -101,6 +107,102 @@ def diff():
         return {'status': 'error', 'message': str(e)}, 500
 
 
+@app.route('/rss/<channel>/tracks', methods=['GET'])
+def get_tracks_by_channel(channel):
+    """Gets all tracks associated with the channel
+
+    Accepts limit, and offset, orders by date (desc)
+
+    :param channel:
+    :return:
+    """
+    limit = request.args.get('limit', 20)
+    offset = request.args.get('offset', 0)
+    channel_obj = db.query(RSSChannel).filter(RSSChannel.channel_name == channel).first()
+
+    if not channel_obj:
+        return {'status': 'error', 'message': f'RSS channel {channel} not found'}, 404
+
+    # TODO: See if it's more efficient to query on channel_obj.tracks
+    tracks = db.query(RSSTrack)\
+        .filter(RSSTrack.channel == channel_obj) \
+        .order_by(RSSTrack.published_date.desc())\
+        .limit(limit)\
+        .offset(offset)\
+        .all()
+
+    data = [c.to_json() for c in tracks]
+    return {'data': data, 'status': 'ok'}
+
+
+@app.route('/rss/channels')
+def get_channels():
+    limit = request.args.get('limit', 20)
+    offset = request.args.get('offset', 0)
+    channels = db.query(RSSChannel).limit(limit).offset(offset).all()
+    data = [c.to_json() for c in channels]
+    return {'data': data, 'status': 'ok'}
+
+from urllib.parse import unquote
+@app.route('/rss/channels/<channel_name>')
+def get_channel_by_name(channel_name):
+    channel_name = unquote(channel_name)
+    channel = db.query(RSSChannel).filter(RSSChannel.channel_name == channel_name).first()
+    if not channel:
+        return {'status': 'error', 'message': f'Channel {channel_name} not found'}, 404
+    data = channel.to_json()
+    return {'status': 'ok', 'data': data}, 200
+
+
+@app.route('/rss/parse', methods=['POST'])
+def parse_feed():
+    """Checks the content of an RSS URL and adds the episodes to the website
+
+    :return:
+    """
+    data = request.get_json()
+    feed_url = data.get('url')
+    req = requests.get(feed_url)
+    from bs4 import BeautifulSoup
+    import datetime
+    import pytz
+    import email.utils
+
+    soup = BeautifulSoup(req.content)
+
+    channel = db.query(RSSChannel).filter(RSSChannel.url == feed_url).first()
+    if not channel:
+        name = soup.find('title').text
+        description = soup.find('description').text
+        channel = RSSChannel(url=feed_url, channel_name=name, channel_description=description)
+        db.add(channel)
+        db.commit()
+
+    latest_track = db.query(RSSTrack)\
+        .filter(RSSTrack.channel == channel)\
+        .order_by(RSSTrack.published_date.desc())\
+        .first()
+
+    tracks = soup.find_all('item')
+    for item in tracks:
+        date_text = item.find('pubDate').text
+        rfc_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
+        if latest_track:
+            latest_track.published_date = latest_track.published_date.replace(tzinfo=rfc_date.tzinfo)
+            if latest_track.published_date >= rfc_date:
+                logger.debug(f'Reached {latest_track.name}, which is already in the database')
+                break
+        track_url = item.find('enclosure').get('url')
+        name = item.find('title').text
+        description = item.find('description').text
+        date_text = item.find('pubDate').text
+        pub_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
+        track = RSSTrack(channel_id=channel.id, url=track_url, name=name,
+                         description=description, published_date=pub_date)
+
+        db.add(track)
+    db.commit()
+    return {'status': 'OK'}, 200
 
 
 @app.route('/file/upload', methods=['POST'])
@@ -123,6 +225,9 @@ def save_file():
         pretty_name = data.get('pretty_name')
         language = data.get('language')
 
+        # RSS page field
+        track_id = data.get('track_id')
+
         audio = BaseAudio.get(source_url=source_url)
         if BaseAudio.exists(audio):
             logger.info('Audio file already exists')
@@ -133,6 +238,12 @@ def save_file():
         db.flush()
         audio.save_file()
         db.commit()
+
+        if track_id:
+            track = db.query(RSSTrack).filter(RSSTrack.id == track_id).first()
+            if track:
+                track.is_added = True
+                db.commit()
 
     except Exception as e:
         data = {

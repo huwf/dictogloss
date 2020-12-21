@@ -1,6 +1,6 @@
 FROM python:3.6
 
-RUN useradd -m worker -u 1000 && chown -R worker:worker /usr/src && apt update && apt install -y ffmpeg
+RUN useradd -m worker -u 1000 && chown -R worker:worker /usr/src && apt update && apt install -y ffmpeg python3-lxml
 
 USER worker
 WORKDIR /usr/src

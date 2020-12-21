@@ -5,6 +5,9 @@ import About from './views/About';
 import Home from './views/Home';
 import Upload from "./views/Upload";
 import Media from './views/Media';
+import RSS from './views/RSS';
+import RSSTracks from './views/RSSTracks';
+
 Vue.use(Router);
 
 export default new Router({
@@ -20,6 +23,12 @@ export default new Router({
         },
         {
             path: '/media', component: Media, name: 'media'
+        },
+        {
+            path: '/rss', component: RSS, name: 'rss'
+        },
+        {
+            path: '/rss/:channel', component: RSSTracks, name: 'rssTracks'
         },
         {
             path: '/file/:file_id/:position', component: File, name: 'filePosition'

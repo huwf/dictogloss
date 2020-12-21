@@ -85,4 +85,34 @@ export const api = {
         // return await axios.put(baseURL + `/transcript/${fileId}/${position}`);  // .data;
         return res.data;
     },
+
+    // RSS
+    getChannels: async () => {
+        const res = await axios.get(baseURL + '/rss/channels');
+        // return axios.get(baseURL + '/rss/channels');
+        console.log('getChannels res.data', res.data);
+        return res.data;
+    },
+
+    getTracksByChannel: async channel => {
+        const res = await axios.get(baseURL + `/rss/${channel}/tracks`);
+        console.debug('getTracksByChannel res.data', res.data);
+        return res.data;
+    },
+
+    getChannelByName: async channelName => {
+        const res = await axios.get(baseURL + `/rss/channels/${channelName}`);
+        console.debug(`getChannelByName ${channelName} res.data`, res.data);
+        return res.data;
+    },
+
+    parseChannel: async url => {
+        let obj = {
+            'url': url
+        };
+        const res = await axios.post(baseURL + `/rss/parse`, obj);
+        console.debug('parseChannel ${url} res.data', res.data);
+        return res.data;
+    }
+
 };

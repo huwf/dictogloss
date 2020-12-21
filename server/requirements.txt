@@ -8,6 +8,7 @@ google-cloud-speech
 google-cloud-translate
 sqlalchemy
 bs4
+lxml
 flask-oauthlib
 pymysql
 cryptography

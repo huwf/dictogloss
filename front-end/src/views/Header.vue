@@ -5,6 +5,7 @@
             <b-nav-item :to="{name: 'upload'}">Upload</b-nav-item>
             <b-nav-item :to="{name: 'about'}">About</b-nav-item>
             <b-nav-item :to="{name: 'media'}">Media</b-nav-item>
+            <b-nav-item :to="{name: 'rss'}">RSS feeds</b-nav-item>
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">

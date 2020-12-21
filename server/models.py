@@ -299,6 +299,49 @@ class Role(Base, RoleMixin):
     description = Column(String(255))
 
 
+class RSSTrack(Base):
+    __tablename__ = 'rss_tracks'
+    id = Column(Integer, primary_key=True)
+    channel_id = Column(Integer, ForeignKey('rss.id'))
+    url = Column(String(256))
+    name = Column(String(256))
+    description = Column(Text)
+    published_date = Column(DateTime)
+    is_added = Column(Boolean, default=False)
+    channel = None
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'title': self.name,
+            'pretty_name': self.name,
+            'url': self.url,
+            'source_url': self.url,
+            'channel': self.channel.channel_name,
+            'description': self.description,
+            'is_added': self.is_added,
+            'language': self.channel.language
+        }
+
+
+class RSSChannel(Base):
+    __tablename__ = 'rss'
+    id = Column(Integer, primary_key=True)
+    url = Column(String(256), unique=True)
+    channel_name = Column(String(64))
+    channel_description = Column(Text)
+    tracks = relationship('RSSTrack', backref='channel')
+    language = Column(String(8), default='sv-SE')
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.channel_name,
+            'description': self.channel_description,
+            'url': self.url
+        }
+
+
 def get_base_info(id):
     """:rtype: BaseAudio"""
     return db.query(BaseAudio).filter(BaseAudio.id == id).first()
