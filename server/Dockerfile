@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.8-slim-buster
 
 RUN useradd -m worker -u 1000 && chown -R worker:worker /usr/src && apt update && apt install -y ffmpeg python3-lxml
 

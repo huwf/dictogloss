@@ -63,6 +63,7 @@ export const api = {
         console.log('getTranscript res.data', res.data);
         return res.data;
     },
+
     getDiff: async (user, google, first) => {
         console.debug('Calling getDiff with arguments ', user, google, first);
         const argsString = `?user=${user}&google=${google}&first=${first}`;
@@ -83,6 +84,11 @@ export const api = {
     transcribe: async (fileId, position) => {
         const res = await axios.put(baseURL + `/transcript/${fileId}/${position}`);
         // return await axios.put(baseURL + `/transcript/${fileId}/${position}`);  // .data;
+        return res.data;
+    },
+    translate: async (fileId, position) => {
+        console.debug('getTranscript fileId position', fileId, position);
+        const res = await axios.post(baseURL + `/translate/${fileId}/{position}`);
         return res.data;
     },
 

@@ -18,6 +18,8 @@
             <template v-if="position">
                 <h3>Transcribe</h3>
                 <transcribe />
+                <h3>Translate</h3>
+                <translate file="file" />
             </template>
         </b-container>
 

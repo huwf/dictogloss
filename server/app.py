@@ -2,6 +2,7 @@
 
 import csv
 import difflib
+from urllib.parse import unquote
 
 import pytz
 import requests
@@ -11,7 +12,7 @@ import logging
 import os
 
 from server.database import db, init_db
-from server.models import BaseAudio, Segment, RSSChannel, RSSTrack
+from server.models import BaseAudio, Segment, RSSChannel, RSSTrack, Translation
 
 app = Flask(__name__)
 # app.config.from_object('server.config')
@@ -143,7 +144,7 @@ def get_channels():
     data = [c.to_json() for c in channels]
     return {'data': data, 'status': 'ok'}
 
-from urllib.parse import unquote
+
 @app.route('/rss/channels/<channel_name>')
 def get_channel_by_name(channel_name):
     channel_name = unquote(channel_name)
@@ -168,7 +169,7 @@ def parse_feed():
     import pytz
     import email.utils
 
-    soup = BeautifulSoup(req.content)
+    soup = BeautifulSoup(req.content, 'xml')
 
     channel = db.query(RSSChannel).filter(RSSChannel.url == feed_url).first()
     if not channel:
@@ -185,7 +186,11 @@ def parse_feed():
 
     tracks = soup.find_all('item')
     for item in tracks:
-        date_text = item.find('pubDate').text
+        try:
+            date_text = item.find('pubDate').text
+        except AttributeError:
+            date_text = item.find('pubdate').text
+
         rfc_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
         if latest_track:
             latest_track.published_date = latest_track.published_date.replace(tzinfo=rfc_date.tzinfo)
@@ -195,12 +200,12 @@ def parse_feed():
         track_url = item.find('enclosure').get('url')
         name = item.find('title').text
         description = item.find('description').text
-        date_text = item.find('pubDate').text
         pub_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
         track = RSSTrack(channel_id=channel.id, url=track_url, name=name,
                          description=description, published_date=pub_date)
 
         db.add(track)
+
     db.commit()
     return {'status': 'OK'}, 200
 
@@ -423,6 +428,18 @@ def transcription(id):
     """
     segment = Segment.get(id)
     return _transcribe(segment)
+
+
+@app.route('/translate/<file>/<position>', methods=['GET', 'POST'])
+def translate_segment(file, position):
+    data = {'status': 'ok'}
+    segment = BaseAudio.get(file).get_segment(position)
+
+    translation = Translation.retrieve_translation(segment)
+    data['translation'] = translation
+
+    return data, 200
+
 
 
 @app.route('/user/<id>/assign_ownership')

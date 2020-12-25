@@ -12,3 +12,4 @@ lxml
 flask-oauthlib
 pymysql
 cryptography
+anki

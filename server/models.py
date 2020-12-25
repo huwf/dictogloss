@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Boolean, DateTime, Column, Integer, \
                        String, ForeignKey
 # Google API stuff
-from google.cloud import speech
+from google.cloud import speech, translate_v2 as translate
 
 
 logger = logging.getLogger(__name__)
@@ -252,8 +252,15 @@ class Translation(Base):
     segment_id = Column(Integer, ForeignKey('segment.id'))
     segment = relationship('Segment', back_populates='translations')
     translation = Column(Text)
-    language = Column(String(2))
+    language = Column(String(8))
     protected = Column(Boolean, default=False)
+
+    @staticmethod
+    def retrieve_translation(segment, target_language='en-GB'):
+        db.query(Translation).filter(Translation.segment == segment).filter(Translation.language == target_language)
+        client = translate.Client()
+        result = client.translate(segment.transcript, target_language=target_language, source_language=segment.language)
+        return result
 
 
 class TranslationUsers(Base):
