@@ -81,7 +81,9 @@
         background-color: #1b1e21;
         font-size: 2.2rem;
         position: relative;
-        bottom: 8px;
-        display: inline;
+        bottom: 7px;
+        display: inline-block;
+        line-height: 1;
+        height:40px;
     }
 </style>

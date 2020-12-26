@@ -77,8 +77,8 @@ export const api = {
         return axios.post(baseURL + '/file/upload', obj);
         // return res.data.data;
     },
-    splitFile: async id => {
-        const res = await axios.post(baseURL + `/file/${id}/split`);
+    splitFile: async (id, length) => {
+        const res = await axios.post(baseURL + `/file/${id}/split`, {'segment_length': length});
         return res.data;
     },
     transcribe: async (fileId, position) => {

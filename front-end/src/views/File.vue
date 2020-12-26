@@ -65,10 +65,12 @@
 
         },
         methods: {
-            splitFile: function (e) {
+            async splitFile(e) {
                 e.preventDefault();
                 console.log('segmentLength: ', this.segmentLength);
-                api.splitFile(this.id, this.segmentLength);
+                let res = await api.splitFile(this.id, this.segmentLength);
+                console.log('segments: ', res.data);
+                this.file.segments = res.data;
             },
             selectPosition: function (segmentPosition) {
                 console.debug('router', this.$router.currentRoute.params);

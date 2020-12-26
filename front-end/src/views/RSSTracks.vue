@@ -36,9 +36,10 @@
         methods: {
             async update(e) {
                 e.preventDefault();
-                // console.log('parseChannel this.url', this.url);
-                const res = api.parseChannel(this.url);
+                const res = await api.parseChannel(this.url);
                 console.log('parseChannel res', res);
+                this.tracks = res.tracks.concat(this.tracks);
+                console.log('tracks: ', this.tracks);
             }
         },
     }

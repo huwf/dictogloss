@@ -4,7 +4,10 @@ import csv
 import difflib
 from urllib.parse import unquote
 
+from bs4 import BeautifulSoup
+import datetime
 import pytz
+import email.utils
 import requests
 from flask import request, jsonify, url_for, Flask, redirect, escape
 from flask_cors import CORS
@@ -164,10 +167,6 @@ def parse_feed():
     data = request.get_json()
     feed_url = data.get('url')
     req = requests.get(feed_url)
-    from bs4 import BeautifulSoup
-    import datetime
-    import pytz
-    import email.utils
 
     soup = BeautifulSoup(req.content, 'xml')
 
@@ -185,6 +184,7 @@ def parse_feed():
         .first()
 
     tracks = soup.find_all('item')
+    ret = []
     for item in tracks:
         try:
             date_text = item.find('pubDate').text
@@ -203,11 +203,11 @@ def parse_feed():
         pub_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
         track = RSSTrack(channel_id=channel.id, url=track_url, name=name,
                          description=description, published_date=pub_date)
-
+        ret.append(track)
         db.add(track)
 
     db.commit()
-    return {'status': 'OK'}, 200
+    return {'status': 'OK', 'tracks': [track.to_json() for track in ret]}, 200
 
 
 @app.route('/file/upload', methods=['POST'])
