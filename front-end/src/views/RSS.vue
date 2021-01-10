@@ -2,30 +2,34 @@
   <div>
     <h2>RSS Feeds</h2>
     <p>
-      Here is a list of all the RSS feeds you've saved in the database, including a bunch of episodes from them.
-      When it's finished, you will be able to click "add to dictogloss", and it will split into segments and be available
-      for your listening pleasure.
+      Here is a list of all the RSS feeds you've saved in the database.
+      <b-form @submit="addChannel">
+        <b-form-group label="Channel name" description="The name of the channel" label-for="channelName">
+          <b-form-input id="channelName" v-model="newChannel.feed_name"></b-form-input>
+        </b-form-group>
+        <b-form-group label="Channel description" description="Description of the channel (parsed from XML if not specified)" label-for="channelDescription">
+          <b-form-input id="channelDescription" v-model="newChannel.feed_description"></b-form-input>
+        </b-form-group>
+        <b-form-group label="Channel type" description="The type of RSS feed (audio or text)">
+          <b-form-select :options="['audio', 'text']" v-model="newChannel.feed_type"></b-form-select>
+        </b-form-group>
+        <b-form-group label="RSS feed" description="The URL of the RSS feed" label-for="rssUrl">
+          <b-form-input id="rssUrl" v-model="newChannel.feed_url"></b-form-input>
+        </b-form-group>
+
+        <b-button type="submit">Add channel</b-button>
+      </b-form>
+
     </p>
     <b-list-group class="col-sm-9 float-left overflow-auto" style="max-height: 95vh;">
       <b-list-group-item v-for="channel in this.channels" v-bind:key="channel.id"
                          :to="{name: 'rssTracks', params: {channel: channel.name}}">
         <h3>{{channel.name}}</h3>
         <p>{{channel.description}}</p>
-        <!--<p>{{channel.tracks}}</p>-->
-        <!--<b-list-group v-for="track in channel.tracks" v-bind:key="track.id">-->
-          <!--<b-list-group-item>{{track.name}}</b-list-group-item>-->
-        <!--</b-list-group>-->
-        <!--&lt;!&ndash;<b-list-group class="col-sm-3 float-left overflow-auto" style="max-height: 95vh;">&ndash;&gt;-->
-          <!--&lt;!&ndash;<b-list-group-item v-for="track in this.tracks" v-bind:key="track.id">&ndash;&gt;-->
-            <!--&lt;!&ndash;{{track.name}}&ndash;&gt;-->
-          <!--&lt;!&ndash;</b-list-group-item>&ndash;&gt;-->
-        <!--&lt;!&ndash;</b-list-group>&ndash;&gt;-->
       </b-list-group-item>
     </b-list-group>
 
   </div>
-
-
 
 </template>
 
@@ -37,48 +41,32 @@
     export default {
         channels: [],
         data: function() {
-            return{
-              name: "RSS",
-              channels: [],
-              tracks: {},
+          return{
+            name: "RSS",
+            channels: [],
+            tracks: {},
+            newChannel: {
+                feed_url: '',
+                feed_name: '',
+                feed_description: '',
+                feed_type: ''
             }
+          }
         },
-        async mounted() {
-            // this.channels = [];
-            console.log('this: ', this);
-            let res = await api.getChannels();
-            this.channels = res.data;
-            for(let i=0; i < this.channels.length; i++) {
-                console.log('this.channels', this.channels);
-                let channel = this.channels[i];
-                let tracks = await api.getTracksByChannel(channel.name);
-                channel.tracks = tracks.data;
-                console.log('channel.tracks', channel.tracks);
-                this.channels[i] = channel;
-                // this.tracks[channel] = tracks.data;
+        async created() {
+          console.log('this: ', this);
+          let res = await api.getChannels();
+          this.channels = res.data;
+        },
+        methods: {
+            async addChannel(e) {
+              e.preventDefault();
+              console.log('obj: ', this.newChannel);
+              await api.addChannel(this.newChannel);
+              // Update the display again...
+              let res = await api.getChannels();
+              this.channels = res.data;
             }
-            console.log('this.tracks', this.tracks);
-            // console.log(res);
-            // this.channels = res;
-            // .then((res) => {
-            //     console.log(res);
-            //     this.channels = res.data.data;
-            // });
-            // this.channels = res;
-
-            //     .then(function(res) {
-            //     let data = res.data.data;
-            // //     this.channels = data;
-            //     alert(JSON.stringify(data));
-            // });
-            // console.log('res: ', res.data);
-            // this.channels = res.data;
-            // res.forEach(channel => {
-            //    console.log(api.getTracksByChannel(channel));
-            // });
-
-
-
         }
     }
 </script>

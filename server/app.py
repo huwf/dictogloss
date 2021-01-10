@@ -2,8 +2,9 @@
 
 import csv
 import difflib
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
+from anki import Collection
 from bs4 import BeautifulSoup
 import datetime
 import pytz
@@ -14,8 +15,10 @@ from flask_cors import CORS
 import logging
 import os
 
+from requests import HTTPError
+
 from server.database import db, init_db
-from server.models import BaseAudio, Segment, RSSChannel, RSSTrack, Translation
+from server.models import BaseAudio, Segment, RSSChannel, RSSTrack, Translation, Article, ParsingRules
 
 app = Flask(__name__)
 # app.config.from_object('server.config')
@@ -41,9 +44,9 @@ def create_user():
     #                                seconds_available=600)
     db.commit()
 
-@app.route('/')
-def home():
-    return "I'm Ron Burgundy?", 200
+# @app.route('/')
+# def home():
+#     return "I'm Ron Burgundy?", 200
 
 
 @app.route('/ping')
@@ -139,6 +142,28 @@ def get_tracks_by_channel(channel):
     return {'data': data, 'status': 'ok'}
 
 
+@app.route('/rss/channels/new', methods=['POST'])
+def add_channel():
+    data = request.get_json()
+    try:
+        feed_url = data.get('feed_url')
+        resp = requests.head(feed_url)
+        resp.raise_for_status()
+    except HTTPError:
+        return {
+            'status': 'error',
+            'details': f'Failed to connect to {feed_url} with status code {resp.status_code}'}, resp.status_code
+    except ConnectionError:
+        return {'status': 'error', 'details': f'Server for url {feed_url} is not available'}, 503
+
+    channel = RSSChannel(
+        url=feed_url, channel_name=data.get('feed_name'), channel_description=data.get('feed_description'),
+        channel_type=data.get('feed_type'))
+    db.add(channel)
+    db.commit()
+    return {'status': 'ok', 'data': channel.to_json()}, 200
+
+
 @app.route('/rss/channels')
 def get_channels():
     limit = request.args.get('limit', 20)
@@ -190,14 +215,18 @@ def parse_feed():
             date_text = item.find('pubDate').text
         except AttributeError:
             date_text = item.find('pubdate').text
-
         rfc_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
         if latest_track:
             latest_track.published_date = latest_track.published_date.replace(tzinfo=rfc_date.tzinfo)
             if latest_track.published_date >= rfc_date:
                 logger.debug(f'Reached {latest_track.name}, which is already in the database')
                 break
-        track_url = item.find('enclosure').get('url')
+        if channel.channel_type == 'audio':
+            track_url = item.find('enclosure').get('url')
+        elif channel.channel_type == 'text':
+            track_url = item.find('link').text
+        else:
+            raise ValueError('Unrecognised channel type')
         name = item.find('title').text
         description = item.find('description').text
         pub_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(email.utils.parsedate_tz(date_text)), pytz.utc)
@@ -207,7 +236,7 @@ def parse_feed():
         db.add(track)
 
     db.commit()
-    return {'status': 'OK', 'tracks': [track.to_json() for track in ret]}, 200
+    return {'status': 'OK', 'data': [track.to_json() for track in ret]}, 200
 
 
 @app.route('/file/upload', methods=['POST'])
@@ -257,6 +286,80 @@ def save_file():
         }
         return data, 500
     return audio.to_json(), 201
+
+
+@app.route('/text/import', methods=['POST'])
+def import_article():
+    data = request.get_json()
+    logger.info('data: %s', data)
+
+    source_url = data.get('source_url')
+    pretty_name = data.get('pretty_name')
+    language = data.get('language')
+    rss_id = data.get('id')
+    track = RSSTrack.get(rss_id)
+    try:
+        resp = requests.get(track.url)
+        resp.raise_for_status()
+    except HTTPError as e:
+        return {'status': 'error', 'details': str(e)}, resp.status_code
+
+    hostname = urlparse(track.url).hostname
+
+    article = Article(pretty_name=track.name, url=track.url, rss_id=rss_id, language=language)
+    parser = ParsingRules.get(hostname)
+    # TODO: Save in a better format!
+    content = parser.parse(resp.content)
+    article.content = content
+    db.add(article)
+    db.commit()
+    return {'status': 'ok', 'article': article.to_json()}, 200
+
+
+@app.route('/text/anki', methods=['POST'])
+def import_to_anki():
+    data = request.get_json()
+    note_type = data.get('note_type')
+    deck = data.get('deck', 'Swedish 2')
+    # TODO: Assume only two fields for now and hack the rest
+    fields = data.get('fields')
+    logger.debug(f'note_type: {note_type} fields: {fields}, deck: {deck} ')
+    col = None
+    # TODO: Document this better!
+    try:
+        original_collection = '/home/worker/anki2/User 1/collection.anki2'
+        col = Collection(original_collection, server=True)
+        model = col.models.byName(note_type)
+        if model:
+            logger.debug('model: %s', model)
+            logger.debug('length: %d', len(model['flds']))
+
+            while len(fields) < len(model['flds']):
+                logger.debug('Adding a new blank string to fields')
+                fields.append('')
+            logger.debug('fields: %s', fields)
+
+        anki_deck = col.decks.byName(deck)
+        if not anki_deck:
+            return {'status': 'error', 'details': 'The deck entered does not exist'}, 400
+        logger.debug('anki_deck %s', anki_deck)
+        # col.decks.select(anki_deck['id'])
+        # col.models.setCurrent(model)
+        # note = col.newNote()
+        # note.fields = fields
+        # col.addNote(note)
+    finally:
+        if col:
+            col.close()
+    return {'status': 'ok'}, 200
+
+
+@app.route('/text/article/<article_id>')
+def get_article(article_id):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if not article:
+        return {'status': 'error', 'details': 'Not Found'}, 404
+    return {'status': 'ok', 'article': article.to_json()}
 
 
 @app.route('/file/<file_id>')
@@ -430,15 +533,37 @@ def transcription(id):
     return _transcribe(segment)
 
 
+def _translate(text, target, obj):
+    translation = Translation.retrieve_translation(text, target_language=target, source_language=obj.language)
+    if isinstance(obj, Article):
+        translation.article = obj
+    elif isinstance(obj, Segment):
+        translation.segment = obj
+
+    return translation
+
 @app.route('/translate/<file>/<position>', methods=['GET', 'POST'])
 def translate_segment(file, position):
-    data = {'status': 'ok'}
+    # NOTE: This does not necessarily translate a whole segment, merely a part.
+    # To translate a whole part, we may end up translating some bits twice
+    # so we'll have to do something a bit more clever
+    data = request.get_json(force=True)
+    target = data.get('target', 'en-GB')
+    text = data.get('text')
+    logger.debug(f'translate file {file} position {position} text {text}')
     segment = BaseAudio.get(file).get_segment(position)
+    logger.debug(f'translate segment: {segment.to_json()}')
 
-    translation = Translation.retrieve_translation(segment)
-    data['translation'] = translation
+    translation = _translate(text, target, segment)
+    db.add(translation)
+    db.commit()
+    ret = {'status': 'ok', 'translation': translation.to_json(segment)}
 
-    return data, 200
+    return ret, 200
+
+
+# @app.route('/translate/text', methods=['GET', 'POST'])
+# def translate_text()
 
 
 
@@ -454,3 +579,5 @@ def assign_ownership(id):
     """
     pass
 
+if __name__ == "__main__":
+    app.run(debug=True)

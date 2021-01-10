@@ -7,6 +7,7 @@ import Upload from "./views/Upload";
 import Media from './views/Media';
 import RSS from './views/RSS';
 import RSSTracks from './views/RSSTracks';
+import Article from './views/Article';
 
 Vue.use(Router);
 
@@ -23,6 +24,9 @@ export default new Router({
         },
         {
             path: '/media', component: Media, name: 'media'
+        },
+        {
+            path: '/article/:articleId', component: Article, 'name': 'article'
         },
         {
             path: '/rss', component: RSS, name: 'rss'

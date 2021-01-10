@@ -18,8 +18,9 @@
             <template v-if="position">
                 <h3>Transcribe</h3>
                 <transcribe />
-                <h3>Translate</h3>
-                <translate file="file" />
+                <!--<h3>Translate</h3>-->
+
+                <!--<translate file="file" />-->
             </template>
         </b-container>
 
@@ -37,7 +38,7 @@
 
     export default {
         name: 'segment',
-        components: {Transcribe, AudioPlayer, SegmentsList},
+        components: {AudioPlayer, SegmentsList, Transcribe},
         data() {
             return {
                 file: {

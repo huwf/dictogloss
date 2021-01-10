@@ -1,4 +1,5 @@
 <template>
+  <p>Not working yet</p>
         <b-container v-if="transcript">
             <b-card  v-if="this.viewMode === 'simple'">
                 <b-card-header>
@@ -25,7 +26,7 @@
         },
         methods: {
             translate: () => {
-                res = api.translate(fileId, position)
+                // res = api.translate(fileId, position)
 
 
             }

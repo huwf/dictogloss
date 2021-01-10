@@ -2,9 +2,10 @@ requests
 Flask
 flask-cors
 flask-security-too
+flask-api
 flask-oauthlib
 google-cloud
-google-cloud-speech
+google-cloud-speech==1.3.2
 google-cloud-translate
 sqlalchemy
 bs4

@@ -4,7 +4,7 @@ services:
   flask:
     build: server/
     ports:
-      - 127.0.0.1:5000:5000
+      - 5000:5000
       - 127.0.0.1:5001:443
 #    expose:
 #      - 5000
@@ -33,10 +33,10 @@ services:
     ports:
       - 8080:8080
     environment:
-      VIRTUAL_HOST: localhost
+      VIRTUAL_HOST: localhost, 192.168.0.3
       VIRTUAL_PORT: 8080
       VIRTUAL_PROTO: http
-      VUE_APP_API: http://localhost:5000
+      VUE_APP_API: http://192.168.0.3:5000
       NODE_ENV: development
     volumes:
       - ./front-end:/usr/src/app
@@ -56,22 +56,22 @@ services:
 
 # SEE: https://github.com/buchdag/letsencrypt-nginx-proxy-companion-compose/blob/master/2-containers/compose-v3/labels/docker-compose.yaml
 # For examples on how to set up the letsencrypt service
-#  nginx_proxy:
-#    image: jwilder/nginx-proxy:alpine
-#    container_name: nginx_proxy
-#    volumes:
-#      - conf:/etc/nginx/conf.d
-#      - vhost:/etc/nginx/vhost.d
-#      - html:/usr/share/nginx/html
-#      - dhparam:/etc/nginx/dhparam
-#      - certs:/etc/nginx/certs:ro
-#      - /var/run/docker.sock:/tmp/docker.sock:ro
-#    labels:
-#      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
-#    ports:
-#      - 80:80
-#      - 443:443
-#    restart: always
+  nginx_proxy:
+    image: jwilder/nginx-proxy:alpine
+    container_name: nginx_proxy
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - dhparam:/etc/nginx/dhparam
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
 
 volumes:
 

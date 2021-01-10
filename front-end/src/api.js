@@ -6,6 +6,7 @@ import axios from 'axios';
 // const vm = new Vue();
 
 const baseURL = process.env.VUE_APP_API ? process.env.VUE_APP_API : 'http://172.17.0.1:5000';
+// const baseURL = 'http://172.17.0.1:5000';
 console.log('baseURL', baseURL);
 console.log('process.env', process.env);
 // const handleError = fn => (...params) =>
@@ -86,13 +87,23 @@ export const api = {
         // return await axios.put(baseURL + `/transcript/${fileId}/${position}`);  // .data;
         return res.data;
     },
-    translate: async (fileId, position) => {
-        console.debug('getTranscript fileId position', fileId, position);
-        const res = await axios.post(baseURL + `/translate/${fileId}/{position}`);
+    translate: async (fileId, position, text) => {
+        console.debug('translate fileId position', fileId, position, text);
+        let obj = {
+            text: text
+        };
+        const res = await axios.post(baseURL + `/translate/${fileId}/${position}`, obj);
+        console.debug('translate returns res.data', res.data);
+
         return res.data;
     },
 
     // RSS
+    addChannel: async (newChannel) => {
+        const res = await axios.post(baseURL + '/rss/channels/new', newChannel);
+        console.log('addChannel res.data', res.data);
+        return res.data;
+    },
     getChannels: async () => {
         const res = await axios.get(baseURL + '/rss/channels');
         // return axios.get(baseURL + '/rss/channels');
@@ -119,6 +130,25 @@ export const api = {
         const res = await axios.post(baseURL + `/rss/parse`, obj);
         console.debug('parseChannel ${url} res.data', res.data);
         return res.data;
+    },
+
+    // Text
+    addToAnki: async obj => {
+
+        const res = await axios.post(baseURL + '/text/anki', obj);
+        console.debug('addToAnki res.data: ', res.data);
+        return res.data;
+    },
+    importText: async obj => {
+        const res = await axios.post(baseURL + '/text/import', obj);
+        console.debug('importText res.data: ', res.data);
+        return res.data
+    },
+    getArticle: async id => {
+        const res = await axios.get(baseURL + `/text/article/${id}`)
+        console.debug('getArticle res.data: ', res.data);
+        return res.data;
     }
+
 
 };

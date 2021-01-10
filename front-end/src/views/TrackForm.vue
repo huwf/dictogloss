@@ -18,32 +18,42 @@
 
     export default {
         name: "TrackForm",
-        props: ['track'],
-        data() {
-            return {
-                file: {
-                    required: true,
-                    type: Object,
-                    default: () => {
-                        return {
-                            source_url: '',
-                            language: 'sv-SE',
-                            pretty_name: '',
-                            track_id: null
-                        };
-                    }
-                },
-            }
-        },
+        props: ['track', 'channelType'],
+        // data() {
+        //     // return {
+        //     //     file: {
+        //     //         required: true,
+        //     //         type: Object,
+        //     //         default: () => {
+        //     //             return {
+        //     //                 source_url: '',
+        //     //                 language: 'sv-SE',
+        //     //                 pretty_name: '',
+        //     //                 track_id: null
+        //     //             };
+        //     //         }
+        //     //     },
+        //     // }
+        // },
 
         methods: {
             formSubmit(e) {
                 e.preventDefault();
                 console.log('this.track: ', this.track);
-                api.upload(this.track).then(response => {
-                    console.debug(response.data);
-                    this.$router.push({name: "file", params: {file_id: response.data.id}});
-                });
+                if(this.channelType === 'audio') {
+                  api.upload(this.track).then(response => {
+                      console.debug('upload segment response.data: ', response.data);
+                      this.$router.push({name: "file", params: {file_id: response.data.id}});
+                  });
+                }
+                else if (this.channelType === 'text') {
+                    console.log('this.track: ', this.track);
+                    api.importText(this.track).then(response => {
+                        console.debug('upload article response data: ', response.data);
+                      this.$router.push({name: "article", params: {articleId: response.article.id}});
+                    });
+                }
+
             },
         }
     }

@@ -6,14 +6,14 @@ from subprocess import Popen, PIPE
 from urllib.parse import urlparse
 
 import requests
+from bs4 import BeautifulSoup
 
 from server.constants import DEFAULT_SEGMENT_LENGTH, SAVE_DIR
 from server.database import Base, db
 from flask_security import UserMixin, RoleMixin
-from sqlalchemy import Float, Text
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Boolean, DateTime, Column, Integer, \
-                       String, ForeignKey
+                       String, ForeignKey, Float, Text, JSON
 # Google API stuff
 from google.cloud import speech, translate_v2 as translate
 
@@ -249,19 +249,66 @@ class SegmentUsers(Base):
 class Translation(Base):
     __tablename__ = 'translation'
     id = Column(Integer, primary_key=True)
-    segment_id = Column(Integer, ForeignKey('segment.id'))
+    segment_id = Column(Integer, ForeignKey('segment.id'), nullable=True)
     segment = relationship('Segment', back_populates='translations')
+    article_id = Column(Integer, ForeignKey('articles.id'), nullable=True)
+    article = relationship('Article', back_populates='translations')
+    original = Column(Text)
     translation = Column(Text)
     language = Column(String(8))
     protected = Column(Boolean, default=False)
 
     @staticmethod
-    def retrieve_translation(segment, target_language='en-GB'):
-        db.query(Translation).filter(Translation.segment == segment).filter(Translation.language == target_language)
-        client = translate.Client()
-        result = client.translate(segment.transcript, target_language=target_language, source_language=segment.language)
-        return result
+    def retrieve_translation(text, target_language='en-GB', source_language='sv-SE'):
+        """Retrieves a translation from Google
 
+        TODO: Check in the database before making this call
+        """
+
+        translation = Translation.search_translations(text, target_language, source_language)
+        if translation:
+            return translation
+
+        client = translate.Client()
+        # Seems that the translation API uses different language codes than the speech to text
+        result = client.translate(text,source_language=source_language.split('-')[0],
+                                       target_language=target_language.split('-')[0])
+
+        print(result)
+
+        return Translation(original=text, translation=str(result['translatedText']), language=target_language)
+
+    @staticmethod
+    def search_translations(text, target_language='en-GB', source_language='sv-SE'):
+        """Search for existing translations in the database
+        This may
+
+        :param text:
+        :param target_language:
+        :param source_language:
+        :return:
+        """
+        ret = db.query(Translation).filter(Translation.original == text).filter(Translation.language== target_language).first()
+
+        if ret:
+            logger.debug(f'search_translation found:{ret.translation}')
+        else:
+            logger.debug('search_translation did not find anything in the database')
+
+        return ret
+
+    def to_json(self, obj):
+        """Outputs JSON representation
+
+        :param obj: An Article or a Segment. Whatever object it is needs to have a language field
+        :return: JSON representation of the class
+        """
+        return {
+            'original': self.original,
+            'original_language': obj.language,
+            'result': self.translation,
+            'result_language': self.language
+        }
 
 class TranslationUsers(Base):
     __tablename__ = 'transcript_user'
@@ -330,6 +377,9 @@ class RSSTrack(Base):
             'language': self.channel.language
         }
 
+    @staticmethod
+    def get(id):
+        return db.query(RSSTrack).filter(RSSTrack.id == id).first()
 
 class RSSChannel(Base):
     __tablename__ = 'rss'
@@ -339,14 +389,94 @@ class RSSChannel(Base):
     channel_description = Column(Text)
     tracks = relationship('RSSTrack', backref='channel')
     language = Column(String(8), default='sv-SE')
+    channel_type = Column(String(6))
 
     def to_json(self):
         return {
             'id': self.id,
             'name': self.channel_name,
             'description': self.channel_description,
-            'url': self.url
+            'url': self.url,
+            'type': self.channel_type
         }
+
+
+class Article(Base):
+    __tablename__ = 'articles'
+    id = Column(Integer, primary_key=True)
+    pretty_name = Column(String(128))
+    url = Column(String(256))
+    language = Column(String(8), default='sv-SE')
+    content = Column(JSON)
+    rss_id = Column(Integer, ForeignKey('rss_tracks.id'), nullable=True)
+    rss = relationship('RSSTrack')
+    translations = relationship('Translation', back_populates='article')
+
+    def to_json(self):
+        fields = ['id', 'pretty_name', 'url', 'language', 'rss_id']
+        ret = {
+            f: getattr(self, f, None) for f in fields
+        }
+        # TODO: Hack until I change this with nicer parsing rules
+        ret['content'] = ''.join([c for c in getattr(self, 'content')['content']])
+        return ret
+
+
+class ParsingRules(Base):
+    """
+    This is an idea for importing articles from a certain site, to decide which HTML elements to use
+    The important part is a JSON blob, with the following format:
+    {
+        title: {tag: h1, class: classy, id: unique},
+        main_content: {
+            allowed_tags: {p, img, h1, h2, h3, h4, table, emph, strong},
+            # TODO: Not done CSS selectors yet
+            main_content_position: div #main .... (CSS selector),
+            ignore: {tag: {script}, id: "ad*"}
+        }
+    }
+    """
+    __tablename__ = 'parsing_rules'
+    id = Column(Integer, primary_key=True)
+    domain = Column(String(128))
+    rules = Column(JSON)
+
+    @staticmethod
+    def get(domain):
+        return db.query(ParsingRules).filter(ParsingRules.domain == domain).first()
+
+    def parse(self, content):
+        rules = self.rules
+        soup = BeautifulSoup(content, 'lxml')
+
+        # Get the title:
+        title_tag = rules['title']['tag']
+        title = soup.find(title_tag).text
+
+        main_content_tag = rules['main_content']['tag']
+        main_content = soup.find(main_content_tag)
+        allowed_tags = rules['main_content']['allowed_tags']
+        content = main_content.find_all(allowed_tags)
+        content = [str(c) for c in content]
+        logger.info('content: %s', content)
+        ret = []
+
+        # def parse(con, out):
+        #     if isinstance(con, str):
+        #         out.append({'str': [con]})
+        #     elif con.find_all(allowed_tags):
+        #         sub_out = []
+        #         for sub in con.contents:
+        #             sub_out = parse(sub, sub_out)
+        #         out.append({con.name: sub_out})
+        #     else:
+        #         out.append({con.name: [{'attrs': [], 'text': con.text}]})
+        #     return out
+        #
+        # for con in content:
+        #     ret = parse(con, ret)
+        # print(ret)
+        return {'title': title, 'content': content}
 
 
 def get_base_info(id):
